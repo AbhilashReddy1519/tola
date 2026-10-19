@@ -1,7 +1,9 @@
 from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from registry.models import AccuracyClass, Business, Category, Instrument, TradeType, Unit
@@ -175,6 +177,38 @@ class VerificationWorkflowPermissionsTests(TestCase):
             status=RequestStatus.SUBMITTED,
         )
 
+    def test_owner_cannot_open_other_owner_request_detail(self):
+        # Create request for Owner B
+        req_b = VerificationRequest.objects.create(
+            instrument=self.inst_b,
+            requested_by=self.owner_b,
+            preferred_date="2026-11-15",
+            status=RequestStatus.SUBMITTED,
+        )
+        # Owner A attempts to access Owner B's request detail (expect 404)
+        self.client.login(username="owner_a_flow", password="password123")
+        response = self.client.get(
+            reverse("owner_request_detail", kwargs={"pk": req_b.pk})
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_owner_cannot_cancel_other_owner_request(self):
+        # Create request for Owner B
+        req_b = VerificationRequest.objects.create(
+            instrument=self.inst_b,
+            requested_by=self.owner_b,
+            preferred_date="2026-11-15",
+            status=RequestStatus.SUBMITTED,
+        )
+        # Owner A attempts to cancel Owner B's request (expect 404)
+        self.client.login(username="owner_a_flow", password="password123")
+        response = self.client.post(
+            reverse("owner_request_cancel", kwargs={"pk": req_b.pk})
+        )
+        self.assertEqual(response.status_code, 404)
+        req_b.refresh_from_db()
+        self.assertEqual(req_b.status, RequestStatus.SUBMITTED)
+
     def test_owner_cannot_request_verification_for_other_instrument(self):
         self.client.login(username="owner_a_flow", password="password123")
         # Owner A attempts to file request choosing Instrument B (owned by Owner B)
@@ -269,3 +303,47 @@ class VerificationWorkflowPermissionsTests(TestCase):
         self.req_a.refresh_from_db()
         self.assertEqual(self.req_a.status, RequestStatus.FAILED)
         self.assertEqual(self.req_a.inspection.result, InspectionResult.FAIL)
+
+
+class AdminRequestListQueryCountTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            username="admin_queries", password="password123", role=User.Role.ADMIN
+        )
+        self.owner = User.objects.create_user(
+            username="owner_queries", password="password123", role=User.Role.OWNER
+        )
+        self.biz = Business.objects.create(
+            owner=self.owner, name="Query Biz", trade_type=TradeType.GROCERY,
+            address="Addr", district="Dist", pincode="500001"
+        )
+        self.inspector = User.objects.create_user(
+            username="insp_queries", password="password123", role=User.Role.INSPECTOR
+        )
+        for i in range(5):
+            inst = Instrument.objects.create(
+                business=self.biz,
+                category=Category.PLATFORM_SCALE,
+                make="Crown",
+                model_no="CR",
+                serial_no=f"ADM-Q-{i:03d}",
+                max_capacity=Decimal("100"),
+                unit=Unit.KG,
+                scale_interval_e=Decimal("0.05"),
+                accuracy_class=AccuracyClass.CLASS_III,
+            )
+            VerificationRequest.objects.create(
+                instrument=inst,
+                requested_by=self.owner,
+                preferred_date="2026-11-20",
+                status=RequestStatus.ASSIGNED,
+                inspector=self.inspector,
+            )
+
+    def test_admin_request_list_query_count(self):
+        self.client.login(username="admin_queries", password="password123")
+        with CaptureQueriesContext(connection) as ctx:
+            response = self.client.get(reverse("admin_request_list"))
+        self.assertEqual(response.status_code, 200)
+        # Session + User + 1 single SELECT with select_related for all requests
+        self.assertLessEqual(len(ctx.captured_queries), 3)

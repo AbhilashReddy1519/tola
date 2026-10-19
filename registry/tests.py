@@ -1,8 +1,9 @@
 from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError, transaction
+from django.db import connection, IntegrityError, transaction
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from .models import AccuracyClass, Business, Category, Instrument, TradeType, Unit
@@ -285,3 +286,34 @@ class InstrumentCRUDTests(TestCase):
         inst.refresh_from_db()
         self.assertEqual(inst.make, "NewMake")
         self.assertEqual(inst.max_capacity, Decimal("20.0000"))
+
+
+class InstrumentListQueryCountTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            username="query_owner", password="password123", role=User.Role.OWNER
+        )
+        self.biz = Business.objects.create(
+            owner=self.owner, name="Query Test Biz", trade_type=TradeType.GROCERY,
+            address="Addr", district="Dist", pincode="500001"
+        )
+        for i in range(5):
+            Instrument.objects.create(
+                business=self.biz,
+                category=Category.COUNTER_SCALE,
+                make="Essae",
+                model_no="E-100",
+                serial_no=f"Q-INST-{i:03d}",
+                max_capacity=Decimal("30"),
+                unit=Unit.KG,
+                scale_interval_e=Decimal("0.01"),
+                accuracy_class=AccuracyClass.CLASS_III,
+            )
+
+    def test_instrument_list_query_count_constant(self):
+        self.client.login(username="query_owner", password="password123")
+        with CaptureQueriesContext(connection) as ctx:
+            response = self.client.get(reverse("instrument_list"))
+        self.assertEqual(response.status_code, 200)
+        # Constant query count: session, user, business, instruments, prefetched requests, prefetched inspections
+        self.assertLessEqual(len(ctx.captured_queries), 6)

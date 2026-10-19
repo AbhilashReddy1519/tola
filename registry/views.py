@@ -49,8 +49,13 @@ class InstrumentListView(RoleRequiredMixin, ListView):
     template_name = "registry/instrument_list.html"
     context_object_name = "instruments"
 
+    def get_business(self):
+        if not hasattr(self, "_cached_business"):
+            self._cached_business = get_user_business(self.request.user)
+        return self._cached_business
+
     def get_queryset(self):
-        business = get_user_business(self.request.user)
+        business = self.get_business()
         if not business:
             return Instrument.objects.none()
         return (
@@ -65,7 +70,7 @@ class InstrumentListView(RoleRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        business = get_user_business(self.request.user)
+        business = self.get_business()
         context["business"] = business
 
         from django.utils import timezone

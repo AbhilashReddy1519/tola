@@ -268,3 +268,75 @@ class PDFDownloadPermissionsTests(TestCase):
         self.client.login(username="insp_pdf", password="password123")
         response = self.client.get(self.pdf_url)
         self.assertEqual(response.status_code, 404)
+
+
+class AdminRevokeCertificateViewTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            username="admin_revoker", password="password123", role=User.Role.ADMIN
+        )
+        self.owner = User.objects.create_user(
+            username="owner_revoker", password="password123", role=User.Role.OWNER
+        )
+        self.inspector = User.objects.create_user(
+            username="insp_revoker", password="password123", role=User.Role.INSPECTOR
+        )
+        self.biz = Business.objects.create(
+            owner=self.owner, name="Revoke Test Biz", trade_type=TradeType.GROCERY,
+            address="Street 1", district="Hyderabad", pincode="500001"
+        )
+        self.inst = Instrument.objects.create(
+            business=self.biz, category=Category.COUNTER_SCALE,
+            make="Avery", model_no="AT-1", serial_no="REV-01",
+            max_capacity=Decimal("15"), unit=Unit.KG,
+            scale_interval_e=Decimal("0.005"), accuracy_class=AccuracyClass.CLASS_III
+        )
+        self.req = VerificationRequest.objects.create(
+            instrument=self.inst, requested_by=self.owner,
+            preferred_date="2026-11-01", status=RequestStatus.PASSED,
+            inspector=self.inspector
+        )
+        self.inspection = Inspection.objects.create(
+            request=self.req, inspector=self.inspector,
+            zero_ok=True, result=InspectionResult.PASS
+        )
+        self.cert = issue_certificate(self.inspection, actor=self.inspector)
+        self.revoke_url = reverse("certificate_revoke", kwargs={"number": self.cert.number})
+
+    def test_admin_can_access_revoke_page_get(self):
+        self.client.login(username="admin_revoker", password="password123")
+        response = self.client.get(self.revoke_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.cert.number)
+
+    def test_admin_revoke_success(self):
+        self.client.login(username="admin_revoker", password="password123")
+        response = self.client.post(self.revoke_url, {"reason": "Fraudulent seal detected"})
+        self.assertRedirects(response, reverse("public_token_verify", kwargs={"token": self.cert.token}))
+        self.cert.refresh_from_db()
+        self.assertEqual(self.cert.state, "REVOKED")
+        self.assertEqual(self.cert.revoked_reason, "Fraudulent seal detected")
+        self.assertEqual(self.cert.revoked_by, self.admin)
+
+    def test_admin_revoke_requires_reason(self):
+        self.client.login(username="admin_revoker", password="password123")
+        response = self.client.post(self.revoke_url, {"reason": "   "})
+        self.assertEqual(response.status_code, 200)
+        self.cert.refresh_from_db()
+        self.assertEqual(self.cert.state, "VALID")
+        self.assertContains(response, "A revocation reason is required")
+
+    def test_owner_cannot_access_revoke_view(self):
+        self.client.login(username="owner_revoker", password="password123")
+        response = self.client.get(self.revoke_url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_inspector_cannot_access_revoke_view(self):
+        self.client.login(username="insp_revoker", password="password123")
+        response = self.client.get(self.revoke_url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_anonymous_redirected_from_revoke_view(self):
+        response = self.client.get(self.revoke_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("login"), response.url)

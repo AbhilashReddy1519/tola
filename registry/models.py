@@ -108,6 +108,19 @@ class Instrument(models.Model):
     @property
     def current_certificate(self):
         """Returns the latest certificate issued for this instrument."""
+        if hasattr(self, "_prefetched_objects_cache") and "verification_requests" in self._prefetched_objects_cache:
+            import datetime
+            certs = []
+            for req in self.verification_requests.all():
+                try:
+                    if hasattr(req, "inspection") and req.inspection and hasattr(req.inspection, "certificate") and req.inspection.certificate:
+                        certs.append(req.inspection.certificate)
+                except Exception:
+                    pass
+            if certs:
+                certs.sort(key=lambda c: (c.issued_on or datetime.date.min, c.created_at), reverse=True)
+                return certs[0]
+            return None
         from certificates.models import Certificate
         return (
             Certificate.objects.filter(inspection__request__instrument=self)
@@ -118,7 +131,12 @@ class Instrument(models.Model):
     @property
     def status(self):
         """Derived status: Unverified, Pending, Valid, Expiring soon, Expired, Failed, Revoked."""
-        latest_req = self.verification_requests.order_by("-created_at").first()
+        if hasattr(self, "_prefetched_objects_cache") and "verification_requests" in self._prefetched_objects_cache:
+            reqs = sorted(self.verification_requests.all(), key=lambda r: r.created_at, reverse=True)
+            latest_req = reqs[0] if reqs else None
+        else:
+            latest_req = self.verification_requests.order_by("-created_at").first()
+
         if latest_req and latest_req.status in ["SUBMITTED", "ASSIGNED"]:
             return "Pending"
 
