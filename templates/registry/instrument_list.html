@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}My Instruments — Tola{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    {% if not business %}
+        <!-- Business Not Registered State -->
+        <div class="empty-state" style="padding-top: 32px;">
+            <span class="label">Step 1 Required</span>
+            <p>You haven't registered your business yet.</p>
+            <a href="{% url 'business_create' %}" class="btn btn-primary">Register Business Profile</a>
+        </div>
+    {% else %}
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: var(--border-hairline); padding-bottom: 32px; margin-bottom: 48px; flex-wrap: wrap; gap: 24px;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span class="label">{{ business.get_trade_type_display }}</span>
+                    <span class="label">&bull;</span>
+                    <span class="label">{{ business.district }}</span>
+                </div>
+                <h1 class="h1" style="margin-top: 8px;">{{ business.name }}</h1>
+            </div>
+
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <a href="{% url 'business_edit' %}" class="btn btn-secondary">Edit Business</a>
+                <a href="{% url 'instrument_create' %}" class="btn btn-primary">Add Instrument</a>
+            </div>
+        </div>
+
+        {% if not instruments %}
+            <!-- Empty State per Section 3.6 -->
+            <div class="empty-state">
+                <p>No instruments registered yet.</p>
+                <a href="{% url 'instrument_create' %}" class="btn btn-primary">Add your first instrument</a>
+            </div>
+        {% else %}
+            <!-- Hairline Instrument Table -->
+            <div class="table-hairline">
+                {% for inst in instruments %}
+                    <a href="{% url 'instrument_detail' inst.pk %}" class="table-row">
+                        <div class="row-main">
+                            <span class="mono" style="min-width: 130px; font-size: 14px; font-weight: 500;">
+                                {{ inst.serial_no }}
+                            </span>
+                            <div>
+                                <div style="font-weight: 500; font-size: 16px;">
+                                    {{ inst.get_category_display }} &mdash; {{ inst.make }} {{ inst.model_no }}
+                                </div>
+                                <div class="small" style="color: var(--ink-soft); margin-top: 2px;">
+                                    Max {{ inst.max_capacity }} {{ inst.unit }} &bull; e = {{ inst.scale_interval_e }} &bull; {{ inst.get_accuracy_class_display }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row-end">
+                            {% if inst.status == 'Valid' %}
+                                <span class="status-chip status-ok"><span class="dot"></span>Valid</span>
+                            {% elif inst.status == 'Expiring soon' %}
+                                <span class="status-chip status-warn"><span class="dot"></span>Expiring soon</span>
+                            {% elif inst.status == 'Expired' or inst.status == 'Failed' or inst.status == 'Revoked' %}
+                                <span class="status-chip status-bad"><span class="dot"></span>{{ inst.status }}</span>
+                            {% else %}
+                                <span class="status-chip status-pending"><span class="dot"></span>{{ inst.status }}</span>
+                            {% endif %}
+                            <span class="row-arrow" aria-hidden="true">&rarr;</span>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+
+</div>
+{% endblock %}

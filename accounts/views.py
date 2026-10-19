@@ -46,7 +46,7 @@ class RoleDashboardRedirectView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         role = getattr(request.user, "role", None)
         if role == User.Role.OWNER:
-            return redirect("owner_dashboard")
+            return redirect("instrument_list")
         elif role == User.Role.INSPECTOR:
             return redirect("inspector_queue")
         elif role == User.Role.ADMIN:

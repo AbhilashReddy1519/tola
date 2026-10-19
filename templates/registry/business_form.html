@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if object %}Edit Business Profile{% else %}Register Your Business{% endif %} — Tola
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 720px;">
+    <div style="margin-bottom: 40px;">
+        <span class="label">Legal Metrology Registry</span>
+        <h1 class="h1" style="margin-top: 8px;">
+            {% if object %}Edit <em>business</em> profile{% else %}Register your <em>business</em>{% endif %}
+        </h1>
+        <p class="body" style="color: var(--ink-soft); margin-top: 12px;">
+            Under the Legal Metrology Act, 2009, instruments must be mapped to a verified commercial entity.
+        </p>
+    </div>
+
+    <form method="post" style="display: flex; flex-direction: column; gap: 8px;">
+        {% csrf_token %}
+
+        <div class="field">
+            {{ form.name }}
+            <label for="{{ form.name.id_for_label }}">Business Name</label>
+            {% if form.name.errors %}
+                <span class="error-text">{{ form.name.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            {{ form.trade_type }}
+            <label for="{{ form.trade_type.id_for_label }}">Trade Category</label>
+            {% if form.trade_type.errors %}
+                <span class="error-text">{{ form.trade_type.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            {{ form.licence_no }}
+            <label for="{{ form.licence_no.id_for_label }}">Trade Licence Number (Optional)</label>
+            {% if form.licence_no.errors %}
+                <span class="error-text">{{ form.licence_no.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            {{ form.address }}
+            <label for="{{ form.address.id_for_label }}">Shop / Facility Address</label>
+            {% if form.address.errors %}
+                <span class="error-text">{{ form.address.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="grid-12" style="margin-bottom: 0;">
+            <div class="col-6">
+                <div class="field">
+                    {{ form.district }}
+                    <label for="{{ form.district.id_for_label }}">District</label>
+                    {% if form.district.errors %}
+                        <span class="error-text">{{ form.district.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="field">
+                    {{ form.pincode }}
+                    <label for="{{ form.pincode.id_for_label }}">PIN Code</label>
+                    {% if form.pincode.errors %}
+                        <span class="error-text">{{ form.pincode.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 16px; margin-top: 32px;">
+            <button type="submit" class="btn btn-primary">
+                {% if object %}Save Profile Changes{% else %}Complete Registration{% endif %}
+            </button>
+            <a href="{% url 'instrument_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

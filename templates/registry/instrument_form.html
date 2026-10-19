@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if object %}Edit {{ object.make }} {{ object.model_no }}{% else %}Register Instrument{% endif %} — Tola
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 760px;">
+    <div style="margin-bottom: 40px;">
+        <span class="label">Legal Metrology Registry</span>
+        <h1 class="h1" style="margin-top: 8px;">
+            {% if object %}Edit <em>instrument</em> details{% else %}Add an <em>instrument</em>{% endif %}
+        </h1>
+        <p class="body" style="color: var(--ink-soft); margin-top: 12px;">
+            Enter the metrological parameters exactly as specified on the instrument's nameplate and stamping plate.
+        </p>
+    </div>
+
+    <form method="post" style="display: flex; flex-direction: column; gap: 8px;">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div style="padding: 16px; background-color: var(--surface); border-left: 3px solid var(--bad); margin-bottom: 24px;">
+                {% for error in form.non_field_errors %}
+                    <p class="small" style="color: var(--bad); margin: 0;">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="field">
+            {{ form.category }}
+            <label for="{{ form.category.id_for_label }}">Instrument Category</label>
+            {% if form.category.errors %}
+                <span class="error-text">{{ form.category.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="grid-12" style="margin-bottom: 0;">
+            <div class="col-6">
+                <div class="field">
+                    {{ form.make }}
+                    <label for="{{ form.make.id_for_label }}">Make / Manufacturer</label>
+                    {% if form.make.errors %}
+                        <span class="error-text">{{ form.make.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="field">
+                    {{ form.model_no }}
+                    <label for="{{ form.model_no.id_for_label }}">Model Number</label>
+                    {% if form.model_no.errors %}
+                        <span class="error-text">{{ form.model_no.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="field">
+            {{ form.serial_no }}
+            <label for="{{ form.serial_no.id_for_label }}">Serial Number</label>
+            <span class="help-text" style="color: var(--ink-soft);">Must be unique for your business.</span>
+            {% if form.serial_no.errors %}
+                <span class="error-text">{{ form.serial_no.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="grid-12" style="margin-bottom: 0;">
+            <div class="col-6">
+                <div class="field">
+                    {{ form.max_capacity }}
+                    <label for="{{ form.max_capacity.id_for_label }}">Max Capacity (must be > 0)</label>
+                    {% if form.max_capacity.errors %}
+                        <span class="error-text">{{ form.max_capacity.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="field">
+                    {{ form.unit }}
+                    <label for="{{ form.unit.id_for_label }}">Unit of Measurement</label>
+                    {% if form.unit.errors %}
+                        <span class="error-text">{{ form.unit.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-12" style="margin-bottom: 0;">
+            <div class="col-6">
+                <div class="field">
+                    {{ form.scale_interval_e }}
+                    <label for="{{ form.scale_interval_e.id_for_label }}">Verification Scale Interval (e)</label>
+                    {% if form.scale_interval_e.errors %}
+                        <span class="error-text">{{ form.scale_interval_e.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="field">
+                    {{ form.accuracy_class }}
+                    <label for="{{ form.accuracy_class.id_for_label }}">Accuracy Class</label>
+                    {% if form.accuracy_class.errors %}
+                        <span class="error-text">{{ form.accuracy_class.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="field">
+            {{ form.installed_on }}
+            <label for="{{ form.installed_on.id_for_label }}">Installation Date (Optional)</label>
+            {% if form.installed_on.errors %}
+                <span class="error-text">{{ form.installed_on.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; gap: 16px; margin-top: 32px;">
+            <button type="submit" class="btn btn-primary">
+                {% if object %}Save Changes{% else %}Register Instrument{% endif %}
+            </button>
+            <a href="{% url 'instrument_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

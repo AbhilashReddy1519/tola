@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}{{ instrument.make }} {{ instrument.model_no }} — Tola{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 960px;">
+
+    <!-- Top Breadcrumb / Action Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+        <a href="{% url 'instrument_list' %}" class="small" style="text-decoration: none; color: var(--ink-soft);">
+            &larr; Back to all instruments
+        </a>
+        <a href="{% url 'instrument_edit' instrument.pk %}" class="btn btn-secondary" style="height: 40px; padding: 0 20px; font-size: 13px;">
+            Edit Details
+        </a>
+    </div>
+
+    <!-- Title & Status Header -->
+    <header style="border-bottom: var(--border-hairline); padding-bottom: 32px; margin-bottom: 40px;">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
+            <span class="label">{{ instrument.get_category_display }}</span>
+            <span class="label">&bull;</span>
+            <span class="label mono">{{ instrument.serial_no }}</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+            <h1 class="h1">{{ instrument.make }} <em>{{ instrument.model_no }}</em></h1>
+            <div>
+                {% if instrument.status == 'Valid' %}
+                    <span class="status-chip status-ok"><span class="dot"></span>Valid</span>
+                {% elif instrument.status == 'Expiring soon' %}
+                    <span class="status-chip status-warn"><span class="dot"></span>Expiring soon</span>
+                {% elif instrument.status == 'Expired' or instrument.status == 'Failed' or instrument.status == 'Revoked' %}
+                    <span class="status-chip status-bad"><span class="dot"></span>{{ instrument.status }}</span>
+                {% else %}
+                    <span class="status-chip status-pending"><span class="dot"></span>{{ instrument.status }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Metrological Specifications Grid -->
+    <section style="margin-bottom: 48px;">
+        <span class="label">Metrological Specifications</span>
+        <hr class="hr" style="margin: 12px 0 24px 0;">
+
+        <div class="grid-12">
+            <div class="col-3">
+                <div class="label">Category</div>
+                <div style="font-weight: 500; margin-top: 6px;">{{ instrument.get_category_display }}</div>
+            </div>
+            <div class="col-3">
+                <div class="label">Max Capacity</div>
+                <div class="mono" style="font-size: 16px; font-weight: 500; margin-top: 6px;">
+                    {{ instrument.max_capacity }} {{ instrument.unit }}
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="label">Scale Interval (e)</div>
+                <div class="mono" style="font-size: 16px; font-weight: 500; margin-top: 6px;">
+                    {{ instrument.scale_interval_e }} {{ instrument.unit }}
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="label">Accuracy Class</div>
+                <div style="font-weight: 500; margin-top: 6px;">
+                    {{ instrument.get_accuracy_class_display }}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-12" style="margin-top: 24px;">
+            <div class="col-3">
+                <div class="label">Serial Number</div>
+                <div class="mono" style="font-size: 16px; font-weight: 500; margin-top: 6px;">
+                    {{ instrument.serial_no }}
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="label">Registered Business</div>
+                <div style="font-weight: 500; margin-top: 6px;">{{ instrument.business.name }}</div>
+            </div>
+            <div class="col-3">
+                <div class="label">Installation Date</div>
+                <div class="mono" style="margin-top: 6px;">
+                    {{ instrument.installed_on|default:"Not specified" }}
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="label">Registration Date</div>
+                <div class="mono" style="margin-top: 6px;">
+                    {{ instrument.created_at|date:"d M Y" }}
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

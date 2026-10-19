@@ -78,7 +78,7 @@ class AuthAndRoleTests(TestCase):
         # Owner
         self.client.login(username="owner_user", password="password123")
         response = self.client.get(reverse("app_redirect"))
-        self.assertRedirects(response, reverse("owner_dashboard"))
+        self.assertRedirects(response, reverse("instrument_list"))
         self.client.logout()
 
         # Inspector
