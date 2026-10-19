@@ -1,0 +1,16 @@
+{% if evaluated %}
+    <span class="mono" style="font-size: 13px; color: var(--ink-soft);">
+        Error: <strong>{{ evaluated.error }}</strong> (MPE: &plusmn;{{ evaluated.mpe }})
+    </span>
+    {% if evaluated.within_limit %}
+        <span class="status-chip status-ok" style="padding: 2px 8px; font-size: 11px;">
+            <span class="dot"></span>Pass
+        </span>
+    {% else %}
+        <span class="status-chip status-bad" style="padding: 2px 8px; font-size: 11px;">
+            <span class="dot"></span>Fail
+        </span>
+    {% endif %}
+{% else %}
+    <span class="small" style="color: var(--ink-soft); font-size: 12px;">Enter load and indication</span>
+{% endif %}

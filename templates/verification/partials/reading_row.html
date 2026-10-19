@@ -1,0 +1,37 @@
+<div class="reading-row" id="row-{{ row_id }}" style="display: grid; grid-template-columns: 180px 140px 140px 1fr auto; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--rule);">
+    <div>
+        <select name="kind[]" style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 8px; font-family: var(--font-sans); font-size: 14px;">
+            {% for code, label in kinds %}
+                <option value="{{ code }}">{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div>
+        <input type="number" step="any" name="test_load[]" placeholder="Load ({{ req.instrument.unit }})" required
+               hx-post="{% url 'inspector_reading_row' req.pk %}"
+               hx-trigger="keyup changed delay:250ms, change"
+               hx-include="closest .reading-row"
+               hx-target="#calc-{{ row_id }}"
+               style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 10px; font-family: var(--font-mono); font-size: 14px;">
+    </div>
+
+    <div>
+        <input type="number" step="any" name="indication[]" placeholder="Indication" required
+               hx-post="{% url 'inspector_reading_row' req.pk %}"
+               hx-trigger="keyup changed delay:250ms, change"
+               hx-include="closest .reading-row"
+               hx-target="#calc-{{ row_id }}"
+               style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 10px; font-family: var(--font-mono); font-size: 14px;">
+    </div>
+
+    <div id="calc-{{ row_id }}" style="display: flex; align-items: center; gap: 12px;">
+        <span class="small" style="color: var(--ink-soft); font-size: 12px;">Enter load and indication</span>
+    </div>
+
+    <div>
+        <button type="button" onclick="this.closest('.reading-row').remove();" class="btn btn-secondary" style="height: 36px; padding: 0 12px; font-size: 12px; color: var(--bad); border-color: var(--rule);">
+            &times;
+        </button>
+    </div>
+</div>

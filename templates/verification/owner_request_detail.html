@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Request #{{ req.pk }} — Tola{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 960px;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+        <a href="{% url 'owner_request_list' %}" class="small" style="text-decoration: none; color: var(--ink-soft);">
+            &larr; Back to all requests
+        </a>
+        {% if req.status == 'SUBMITTED' or req.status == 'ASSIGNED' %}
+            <form method="post" action="{% url 'owner_request_cancel' req.pk %}" onsubmit="return confirm('Are you sure you want to cancel this verification request?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary" style="height: 38px; padding: 0 18px; font-size: 13px; color: var(--bad); border-color: var(--bad);">
+                    Cancel Request
+                </button>
+            </form>
+        {% endif %}
+    </div>
+
+    <!-- Header -->
+    <header style="border-bottom: var(--border-hairline); padding-bottom: 32px; margin-bottom: 40px;">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
+            <span class="label mono">REQUEST #VR-{{ req.pk }}</span>
+            <span class="label">&bull;</span>
+            <span class="label mono">{{ req.created_at|date:"d M Y" }}</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+            <h1 class="h1">Verification for <em>{{ req.instrument.make }} {{ req.instrument.model_no }}</em></h1>
+            <div>
+                {% if req.status == 'PASSED' or req.status == 'CERTIFIED' %}
+                    <span class="status-chip status-ok"><span class="dot"></span>{{ req.get_status_display }}</span>
+                {% elif req.status == 'SUBMITTED' or req.status == 'ASSIGNED' %}
+                    <span class="status-chip status-pending"><span class="dot"></span>{{ req.get_status_display }}</span>
+                {% elif req.status == 'FAILED' or req.status == 'CANCELLED' %}
+                    <span class="status-chip status-bad"><span class="dot"></span>{{ req.get_status_display }}</span>
+                {% else %}
+                    <span class="status-chip status-pending"><span class="dot"></span>{{ req.get_status_display }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Details Grid -->
+    <section style="margin-bottom: 48px;">
+        <span class="label">Request Overview</span>
+        <hr class="hr" style="margin: 12px 0 24px 0;">
+
+        <div class="grid-12">
+            <div class="col-3">
+                <div class="label">Serial Number</div>
+                <div class="mono" style="font-weight: 500; font-size: 16px; margin-top: 6px;">
+                    <a href="{% url 'instrument_detail' req.instrument.pk %}">{{ req.instrument.serial_no }}</a>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="label">Preferred Date</div>
+                <div class="mono" style="font-weight: 500; font-size: 16px; margin-top: 6px;">
+                    {{ req.preferred_date|date:"d M Y" }}
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="label">Assigned Inspector</div>
+                <div style="font-weight: 500; margin-top: 6px;">
+                    {% if req.inspector %}{{ req.inspector.get_full_name|default:req.inspector.username }}{% else %}<span style="color: var(--ink-soft);">Awaiting Assignment</span>{% endif %}
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="label">Verification Fee</div>
+                <div class="mono" style="font-weight: 500; font-size: 16px; margin-top: 6px;">
+                    ₹{{ req.fee_amount }}
+                </div>
+            </div>
+        </div>
+
+        {% if req.notes %}
+            <div style="margin-top: 24px; padding: 16px; background-color: var(--surface); border-radius: var(--radius-sm);">
+                <div class="label">Owner Notes</div>
+                <p class="small" style="margin-top: 6px;">{{ req.notes }}</p>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- Inspection Readings (if completed) -->
+    {% if req.inspection %}
+        <section style="margin-bottom: 48px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="label">Inspection Readings & Findings</span>
+                <span class="status-chip {% if req.inspection.result == 'PASS' %}status-ok{% else %}status-bad{% endif %}">
+                    <span class="dot"></span>Result: {{ req.inspection.result }}
+                </span>
+            </div>
+            <hr class="hr" style="margin: 12px 0 24px 0;">
+
+            <div style="margin-bottom: 16px;">
+                <span class="small" style="color: var(--ink-soft);">
+                    Zero Check: <strong style="color: var(--ink);">{% if req.inspection.zero_ok %}PASSED{% else %}FAILED{% endif %}</strong> &bull;
+                    Inspected on: <span class="mono">{{ req.inspection.inspected_at|date:"d M Y H:i" }}</span>
+                </span>
+            </div>
+
+            {% if req.inspection.readings.all %}
+                <div class="table-hairline">
+                    {% for rd in req.inspection.readings.all %}
+                        <div class="table-row" style="cursor: default;">
+                            <div class="row-main">
+                                <span class="mono" style="width: 140px; font-size: 13px;">{{ rd.get_kind_display }}</span>
+                                <span class="mono" style="font-size: 14px;">Load: {{ rd.test_load }} {{ req.instrument.unit }}</span>
+                                <span class="mono" style="font-size: 14px;">Ind: {{ rd.indication }} {{ req.instrument.unit }}</span>
+                                <span class="mono small" style="color: var(--ink-soft);">Error: {{ rd.error }} (MPE: &plusmn;{{ rd.mpe }})</span>
+                            </div>
+                            <div class="row-end">
+                                {% if rd.within_limit %}
+                                    <span class="status-chip status-ok"><span class="dot"></span>Within Limit</span>
+                                {% else %}
+                                    <span class="status-chip status-bad"><span class="dot"></span>Exceeded</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if req.inspection.remarks %}
+                <div style="margin-top: 20px; padding: 16px; background-color: var(--surface); border-radius: var(--radius-sm);">
+                    <div class="label">Inspector Remarks</div>
+                    <p class="small" style="margin-top: 6px;">{{ req.inspection.remarks }}</p>
+                </div>
+            {% endif %}
+        </section>
+    {% endif %}
+
+    <!-- Audit Timeline -->
+    <section>
+        <span class="label">Status Audit Trail (Immutable)</span>
+        <hr class="hr" style="margin: 12px 0 24px 0;">
+
+        <ol class="timeline">
+            {% for ev in req.events.all %}
+                <li class="timeline-item">
+                    <div class="timeline-time">{{ ev.at|date:"d M Y &bull; H:i:s" }} UTC</div>
+                    <div class="timeline-event">
+                        <strong>{{ ev.to_status }}</strong>
+                        {% if ev.from_status %} (from {{ ev.from_status }}){% endif %}
+                        {% if ev.actor %} &mdash; by <em>{{ ev.actor.get_full_name|default:ev.actor.username }}</em> ({{ ev.actor.get_role_display }}){% endif %}
+                        {% if ev.note %}<p class="small" style="color: var(--ink-soft); margin-top: 4px;">{{ ev.note }}</p>{% endif %}
+                    </div>
+                </li>
+            {% empty %}
+                <p class="small" style="color: var(--ink-soft);">No status events recorded.</p>
+            {% endfor %}
+        </ol>
+    </section>
+
+</div>
+{% endblock %}

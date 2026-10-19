@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Inspector: VR-{{ req.pk }} — Tola{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 720px;">
+    <div style="margin-bottom: 40px;">
+        <span class="label">Controller Assignment</span>
+        <h1 class="h1" style="margin-top: 8px;">Assign <em>inspector</em></h1>
+        <p class="body" style="color: var(--ink-soft); margin-top: 12px;">
+            Assigning Request #VR-{{ req.pk }} for <strong>{{ req.instrument.business.name }}</strong> ({{ req.instrument.make }} {{ req.instrument.model_no }}, SN: {{ req.instrument.serial_no }}).
+        </p>
+    </div>
+
+    <form method="post" style="display: flex; flex-direction: column; gap: 8px;">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div style="padding: 16px; background-color: var(--surface); border-left: 3px solid var(--bad); margin-bottom: 24px;">
+                {% for error in form.non_field_errors %}
+                    <p class="small" style="color: var(--bad); margin: 0;">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="field">
+            {{ form.inspector }}
+            <label for="{{ form.inspector.id_for_label }}">Select Qualified Inspector</label>
+            {% if form.inspector.errors %}
+                <span class="error-text">{{ form.inspector.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            {{ form.notes }}
+            <label for="{{ form.notes.id_for_label }}">Assignment Audit Note (Optional)</label>
+            {% if form.notes.errors %}
+                <span class="error-text">{{ form.notes.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; gap: 16px; margin-top: 32px;">
+            <button type="submit" class="btn btn-primary">Confirm & Assign Inspector</button>
+            <a href="{% url 'admin_request_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Inspector queue — Tola{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div style="border-bottom: var(--border-hairline); padding-bottom: 32px; margin-bottom: 48px;">
+        <span class="label">Legal Metrology Officer</span>
+        <h1 class="h1" style="margin-top: 8px;">Inspector <em>queue</em></h1>
+        <p class="body" style="color: var(--ink-soft); margin-top: 8px;">
+            Open verification tasks assigned to you, ordered by preferred appointment date.
+        </p>
+    </div>
+
+    {% if not requests %}
+        <div class="empty-state">
+            <p>Your inspection queue is clear.</p>
+        </div>
+    {% else %}
+        <div class="table-hairline">
+            {% for r in requests %}
+                <div class="table-row" style="cursor: default;">
+                    <div class="row-main">
+                        <span class="mono" style="min-width: 90px; font-size: 14px; font-weight: 500;">
+                            VR-#{{ r.pk }}
+                        </span>
+                        <div>
+                            <div style="font-weight: 500; font-size: 16px;">
+                                {{ r.instrument.make }} {{ r.instrument.model_no }}
+                                <span class="mono" style="font-size: 13px; color: var(--ink-soft); margin-left: 8px;">({{ r.instrument.serial_no }})</span>
+                            </div>
+                            <div class="small" style="color: var(--ink-soft); margin-top: 2px;">
+                                Business: <strong>{{ r.instrument.business.name }}</strong> &bull;
+                                Address: {{ r.instrument.business.address }}, {{ r.instrument.business.district }} &bull;
+                                Preferred Date: <span class="mono">{{ r.preferred_date|date:"d M Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row-end">
+                        <a href="{% url 'inspector_inspect' r.pk %}" class="btn btn-primary" style="height: 40px; padding: 0 20px; font-size: 13px;">
+                            Start Inspection &rarr;
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

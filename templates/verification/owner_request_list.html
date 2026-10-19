@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Verification Requests — Tola{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: var(--border-hairline); padding-bottom: 32px; margin-bottom: 48px; flex-wrap: wrap; gap: 24px;">
+        <div>
+            <span class="label">Legal Metrology Audit</span>
+            <h1 class="h1" style="margin-top: 8px;">Verification <em>requests</em></h1>
+            <p class="body" style="color: var(--ink-soft); margin-top: 8px;">
+                Track submission status, inspector appointments, and calibration outcomes.
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 16px;">
+            <a href="{% url 'instrument_list' %}" class="btn btn-secondary">My Instruments</a>
+            <a href="{% url 'owner_request_create' %}" class="btn btn-primary">File New Request</a>
+        </div>
+    </div>
+
+    {% if not requests %}
+        <div class="empty-state">
+            <p>No verification requests filed yet.</p>
+            <a href="{% url 'owner_request_create' %}" class="btn btn-primary">File your first request</a>
+        </div>
+    {% else %}
+        <div class="table-hairline">
+            {% for r in requests %}
+                <a href="{% url 'owner_request_detail' r.pk %}" class="table-row">
+                    <div class="row-main">
+                        <span class="mono" style="min-width: 100px; font-size: 14px; font-weight: 500;">
+                            VR-#{{ r.pk }}
+                        </span>
+                        <div>
+                            <div style="font-weight: 500; font-size: 16px;">
+                                {{ r.instrument.make }} {{ r.instrument.model_no }}
+                                <span class="mono" style="font-size: 13px; color: var(--ink-soft); margin-left: 8px;">({{ r.instrument.serial_no }})</span>
+                            </div>
+                            <div class="small" style="color: var(--ink-soft); margin-top: 2px;">
+                                Preferred Date: <span class="mono">{{ r.preferred_date|date:"d M Y" }}</span>
+                                {% if r.inspector %} &bull; Inspector: {{ r.inspector.get_full_name|default:r.inspector.username }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row-end">
+                        {% if r.status == 'PASSED' or r.status == 'CERTIFIED' %}
+                            <span class="status-chip status-ok"><span class="dot"></span>{{ r.get_status_display }}</span>
+                        {% elif r.status == 'SUBMITTED' or r.status == 'ASSIGNED' %}
+                            <span class="status-chip status-pending"><span class="dot"></span>{{ r.get_status_display }}</span>
+                        {% elif r.status == 'FAILED' or r.status == 'CANCELLED' %}
+                            <span class="status-chip status-bad"><span class="dot"></span>{{ r.get_status_display }}</span>
+                        {% else %}
+                            <span class="status-chip status-pending"><span class="dot"></span>{{ r.get_status_display }}</span>
+                        {% endif %}
+                        <span class="row-arrow" aria-hidden="true">&rarr;</span>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

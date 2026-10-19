@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="{% static 'css/components.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
     <!-- Floating Nav Rail -->
     <header>
         <nav class="nav-rail" aria-label="Main Navigation">
@@ -52,6 +52,9 @@
         {% endfor %}
     </div>
     {% endif %}
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoMVMf3CdUnKsZSkeDAULKG0EYIG5EGnpL" crossorigin="anonymous"></script>
 
     {% block extra_js %}{% endblock %}
 </body>

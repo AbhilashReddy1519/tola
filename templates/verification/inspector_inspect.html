@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Inspect: {{ instrument.make }} {{ instrument.model_no }} — Tola{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 960px;">
+
+    <div style="margin-bottom: 24px;">
+        <a href="{% url 'inspector_queue' %}" class="small" style="text-decoration: none; color: var(--ink-soft);">
+            &larr; Back to queue
+        </a>
+    </div>
+
+    <!-- Header -->
+    <header style="border-bottom: var(--border-hairline); padding-bottom: 28px; margin-bottom: 36px;">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
+            <span class="label">ON-SITE INSPECTION</span>
+            <span class="label">&bull;</span>
+            <span class="label mono">REQUEST #VR-{{ req.pk }}</span>
+        </div>
+        <h1 class="h1">Calibration Inspection: <em>{{ instrument.make }} {{ instrument.model_no }}</em></h1>
+        <p class="body" style="color: var(--ink-soft); margin-top: 8px;">
+            Business: <strong>{{ instrument.business.name }}</strong> &bull; Serial: <span class="mono">{{ instrument.serial_no }}</span> &bull;
+            Max: <span class="mono">{{ instrument.max_capacity }} {{ instrument.unit }}</span> &bull; e = <span class="mono">{{ instrument.scale_interval_e }} {{ instrument.unit }}</span> ({{ instrument.get_accuracy_class_display }})
+        </p>
+    </header>
+
+    <form method="post" id="inspection-form" style="display: flex; flex-direction: column; gap: 48px;">
+        {% csrf_token %}
+
+        <!-- Section 1: Zero Check -->
+        <section style="padding: 24px; background-color: var(--surface); border-radius: var(--radius-sm); border: var(--border-hairline);">
+            <span class="label">Step 1 / Initial Verification</span>
+            <h3 class="h3" style="margin-top: 6px; margin-bottom: 12px;">Zero Setting Check</h3>
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                <input type="checkbox" name="zero_ok" value="true" checked style="width: 20px; height: 20px; accent-color: var(--ink);">
+                <span style="font-size: 15px; font-weight: 500;">
+                    Zero indication is within &plusmn;0.25 e under zero load (Zero Check PASSED)
+                </span>
+            </label>
+            <p class="small" style="color: var(--ink-soft); margin-top: 8px;">
+                Note: In accordance with OIML R 76-1, an uncorrected zero check failure immediately disqualifies the instrument.
+            </p>
+        </section>
+
+        <!-- Section 2: Test Readings (HTMX Powered) -->
+        <section>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">
+                <div>
+                    <span class="label">Step 2 / Accuracy, Repeatability & Eccentricity</span>
+                    <h3 class="h3" style="margin-top: 4px;">Test Load Readings</h3>
+                </div>
+
+                <button type="button" class="btn btn-secondary" style="height: 38px; padding: 0 16px; font-size: 13px;"
+                        onclick="addReadingRow()">
+                    + Add Reading Row
+                </button>
+            </div>
+
+            <!-- Table Header -->
+            <div style="display: grid; grid-template-columns: 180px 140px 140px 1fr auto; gap: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--rule);">
+                <span class="label">Test Kind</span>
+                <span class="label">Test Load ({{ instrument.unit }})</span>
+                <span class="label">Indication ({{ instrument.unit }})</span>
+                <span class="label">Live Error & MPE Status</span>
+                <span></span>
+            </div>
+
+            <!-- Readings Container -->
+            <div id="readings-container">
+                <!-- Initial Row 1: Accuracy at Low Load -->
+                <div class="reading-row" id="row-1" style="display: grid; grid-template-columns: 180px 140px 140px 1fr auto; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--rule);">
+                    <div>
+                        <select name="kind[]" style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 8px; font-family: var(--font-sans); font-size: 14px;">
+                            <option value="ACCURACY" selected>Accuracy</option>
+                            <option value="REPEATABILITY">Repeatability</option>
+                            <option value="ECCENTRICITY">Eccentricity</option>
+                        </select>
+                    </div>
+                    <div>
+                        <input type="number" step="any" name="test_load[]" placeholder="Load ({{ instrument.unit }})" required
+                               hx-post="{% url 'inspector_reading_row' req.pk %}"
+                               hx-trigger="keyup changed delay:250ms, change"
+                               hx-include="closest .reading-row"
+                               hx-target="#calc-1"
+                               style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 10px; font-family: var(--font-mono); font-size: 14px;">
+                    </div>
+                    <div>
+                        <input type="number" step="any" name="indication[]" placeholder="Indication" required
+                               hx-post="{% url 'inspector_reading_row' req.pk %}"
+                               hx-trigger="keyup changed delay:250ms, change"
+                               hx-include="closest .reading-row"
+                               hx-target="#calc-1"
+                               style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 10px; font-family: var(--font-mono); font-size: 14px;">
+                    </div>
+                    <div id="calc-1" style="display: flex; align-items: center; gap: 12px;">
+                        <span class="small" style="color: var(--ink-soft); font-size: 12px;">Enter load and indication</span>
+                    </div>
+                    <div>
+                        <button type="button" onclick="this.closest('.reading-row').remove();" class="btn btn-secondary" style="height: 36px; padding: 0 12px; font-size: 12px; color: var(--bad); border-color: var(--rule);">&times;</button>
+                    </div>
+                </div>
+
+                <!-- Initial Row 2: Accuracy at Half Capacity -->
+                <div class="reading-row" id="row-2" style="display: grid; grid-template-columns: 180px 140px 140px 1fr auto; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--rule);">
+                    <div>
+                        <select name="kind[]" style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 8px; font-family: var(--font-sans); font-size: 14px;">
+                            <option value="ACCURACY" selected>Accuracy</option>
+                            <option value="REPEATABILITY">Repeatability</option>
+                            <option value="ECCENTRICITY">Eccentricity</option>
+                        </select>
+                    </div>
+                    <div>
+                        <input type="number" step="any" name="test_load[]" placeholder="Load ({{ instrument.unit }})" required
+                               hx-post="{% url 'inspector_reading_row' req.pk %}"
+                               hx-trigger="keyup changed delay:250ms, change"
+                               hx-include="closest .reading-row"
+                               hx-target="#calc-2"
+                               style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 10px; font-family: var(--font-mono); font-size: 14px;">
+                    </div>
+                    <div>
+                        <input type="number" step="any" name="indication[]" placeholder="Indication" required
+                               hx-post="{% url 'inspector_reading_row' req.pk %}"
+                               hx-trigger="keyup changed delay:250ms, change"
+                               hx-include="closest .reading-row"
+                               hx-target="#calc-2"
+                               style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 10px; font-family: var(--font-mono); font-size: 14px;">
+                    </div>
+                    <div id="calc-2" style="display: flex; align-items: center; gap: 12px;">
+                        <span class="small" style="color: var(--ink-soft); font-size: 12px;">Enter load and indication</span>
+                    </div>
+                    <div>
+                        <button type="button" onclick="this.closest('.reading-row').remove();" class="btn btn-secondary" style="height: 36px; padding: 0 12px; font-size: 12px; color: var(--bad); border-color: var(--rule);">&times;</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Remarks -->
+        <section>
+            <div class="field">
+                <textarea name="remarks" id="inspector-remarks" placeholder="Notes on ambient conditions, eccentric errors, stamping seals applied..."></textarea>
+                <label for="inspector-remarks">Inspector Field Remarks & Stamping Notes</label>
+            </div>
+        </section>
+
+        <!-- Section 4: Submission Actions -->
+        <div style="display: flex; gap: 20px; align-items: center; padding-top: 16px; border-top: var(--border-hairline);">
+            <button type="submit" class="btn btn-primary" style="height: 52px; padding: 0 36px; font-size: 16px;">
+                Complete & Submit Inspection
+            </button>
+            <a href="{% url 'inspector_queue' %}" class="btn btn-secondary">Discard & Exit</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    let rowCounter = 2;
+    function addReadingRow() {
+        rowCounter++;
+        const url = "{% url 'inspector_reading_row' req.pk %}?row_id=" + rowCounter;
+        htmx.ajax('GET', url, {
+            target: '#readings-container',
+            swap: 'beforeend'
+        });
+    }
+</script>
+{% endblock %}
