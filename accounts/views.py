@@ -22,6 +22,7 @@ class UserLoginView(LoginView):
 
 
 class UserLogoutView(LogoutView):
+    http_method_names = ["get", "post", "options"]
     next_page = reverse_lazy("landing")
 
     def get(self, request, *args, **kwargs):

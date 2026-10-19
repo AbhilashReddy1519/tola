@@ -112,6 +112,19 @@ class AuthAndRoleTests(TestCase):
         self.assertContains(response, "Admin console")
         self.client.logout()
 
+    def test_logout_view_get_and_post(self):
+        # Test GET logout
+        self.client.login(username="owner_user", password="password123")
+        response = self.client.get(reverse("logout"))
+        self.assertRedirects(response, reverse("landing"))
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+        # Test POST logout
+        self.client.login(username="owner_user", password="password123")
+        response = self.client.post(reverse("logout"))
+        self.assertRedirects(response, reverse("landing"))
+        self.assertNotIn("_auth_user_id", self.client.session)
+
 
 class OwnerRegistrationTests(TestCase):
     def test_owner_registration_success(self):
