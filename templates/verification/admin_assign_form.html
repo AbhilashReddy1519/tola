@@ -3,20 +3,62 @@
 {% block title %}Assign Inspector: VR-{{ req.pk }} — Tola{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 720px;">
-    <div style="margin-bottom: 40px;">
-        <span class="label">Controller Assignment</span>
-        <h1 class="h1" style="margin-top: 8px;">Assign <em>inspector</em></h1>
-        <p class="body" style="color: var(--ink-soft); margin-top: 12px;">
-            Assigning Request #VR-{{ req.pk }} for <strong>{{ req.instrument.business.name }}</strong> ({{ req.instrument.make }} {{ req.instrument.model_no }}, SN: {{ req.instrument.serial_no }}).
-        </p>
+<div class="container" style="max-width: 800px;">
+    
+    <div style="margin-bottom: 24px;">
+        <a href="{% url 'admin_request_list' %}" class="small" style="text-decoration: none; color: var(--ink-soft);">
+            &larr; Back to console
+        </a>
     </div>
 
-    <form method="post" style="display: flex; flex-direction: column; gap: 8px;">
+    <!-- Header -->
+    <header style="border-bottom: var(--border-hairline); padding-bottom: 24px; margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <span class="label">LEGAL METROLOGY ASSIGNMENT</span>
+            <span class="label" aria-hidden="true">&bull;</span>
+            <span class="label mono">REQUEST #VR-{{ req.pk }}</span>
+        </div>
+        <h1 class="h1">Assign <em>inspector</em></h1>
+        <p class="body" style="color: var(--ink-soft); margin-top: 8px;">
+            Designate an authorized legal metrology officer to execute physical calibration and stamping.
+        </p>
+    </header>
+
+    <!-- Request Details Card -->
+    <div style="padding: 24px; background-color: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-sm); margin-bottom: 36px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <div>
+                <span class="label">BUSINESS</span>
+                <div style="font-weight: 500; font-size: 16px; margin-top: 4px;">{{ req.instrument.business.name }}</div>
+                <div class="small" style="color: var(--ink-soft);">{{ req.instrument.business.district }}, {{ req.instrument.business.pincode }}</div>
+            </div>
+
+            <div>
+                <span class="label">INSTRUMENT</span>
+                <div style="font-weight: 500; font-size: 16px; margin-top: 4px;">{{ req.instrument.make }} {{ req.instrument.model_no }}</div>
+                <div class="mono small" style="color: var(--ink-soft);">Serial: {{ req.instrument.serial_no }}</div>
+            </div>
+
+            <div>
+                <span class="label">SPECIFICATIONS</span>
+                <div class="mono" style="font-size: 15px; margin-top: 4px;">Max {{ req.instrument.max_capacity }} {{ req.instrument.unit }}</div>
+                <div class="small" style="color: var(--ink-soft);">e = {{ req.instrument.scale_interval_e }} &bull; Class {{ req.instrument.accuracy_class }}</div>
+            </div>
+
+            <div>
+                <span class="label">PREFERRED DATE</span>
+                <div class="mono" style="font-size: 15px; font-weight: 500; margin-top: 4px;">{{ req.preferred_date|date:"Y-m-d" }}</div>
+                <div class="small" style="color: var(--ink-soft);">Fee: ₹{{ req.fee_amount }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Form -->
+    <form method="post" style="display: flex; flex-direction: column; gap: 24px;">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
-            <div style="padding: 16px; background-color: var(--surface); border-left: 3px solid var(--bad); margin-bottom: 24px;">
+            <div style="padding: 16px; background-color: var(--surface); border-left: 3px solid var(--bad); margin-bottom: 16px;">
                 {% for error in form.non_field_errors %}
                     <p class="small" style="color: var(--bad); margin: 0;">{{ error }}</p>
                 {% endfor %}
@@ -25,7 +67,7 @@
 
         <div class="field">
             {{ form.inspector }}
-            <label for="{{ form.inspector.id_for_label }}">Select Qualified Inspector</label>
+            <label for="{{ form.inspector.id_for_label }}">Select Authorized Metrology Inspector</label>
             {% if form.inspector.errors %}
                 <span class="error-text">{{ form.inspector.errors.0 }}</span>
             {% endif %}
@@ -33,14 +75,14 @@
 
         <div class="field">
             {{ form.notes }}
-            <label for="{{ form.notes.id_for_label }}">Assignment Audit Note (Optional)</label>
+            <label for="{{ form.notes.id_for_label }}">Audit Transition Note (Optional)</label>
             {% if form.notes.errors %}
                 <span class="error-text">{{ form.notes.errors.0 }}</span>
             {% endif %}
         </div>
 
-        <div style="display: flex; gap: 16px; margin-top: 32px;">
-            <button type="submit" class="btn btn-primary">Confirm & Assign Inspector</button>
+        <div style="display: flex; gap: 16px; align-items: center; margin-top: 16px;">
+            <button type="submit" class="btn btn-primary">Confirm &amp; Assign Inspector &rarr;</button>
             <a href="{% url 'admin_request_list' %}" class="btn btn-secondary">Cancel</a>
         </div>
     </form>

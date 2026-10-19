@@ -7,7 +7,18 @@ class LandingPageTests(TestCase):
         response = self.client.get(reverse("landing"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "base.html")
-        self.assertContains(response, "Tola")
+        self.assertTemplateUsed(response, "site_pages/landing.html")
+        self.assertContains(response, "Every scale,")
+        self.assertContains(response, "<em>verified.</em>")
+        self.assertContains(response, "LEGAL METROLOGY")
+        self.assertContains(response, "Index of participants")
+        self.assertContains(response, "How it works")
+        self.assertContains(response, "Live ledger")
+        self.assertContains(response, "Verify any certificate")
+        self.assertContains(response, "footer-wordmark")
+        self.assertIn("instruments_verified", response.context)
+        self.assertIn("certificates_active", response.context)
+        self.assertIn("avg_days_to_certify", response.context)
 
 
 class StyleguideTests(TestCase):

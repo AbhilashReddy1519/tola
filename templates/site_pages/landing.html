@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Tola — Every scale, verified.{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- 1. Hero -->
+    <section class="landing-hero" aria-labelledby="hero-heading">
+        <h1 id="hero-heading" class="display hero-title">
+            Every scale,<br><em>verified.</em>
+        </h1>
+
+        <div class="label hero-meta">
+            <span>LEGAL METROLOGY</span>
+            <span aria-hidden="true">/</span>
+            <span>DIGITAL VERIFICATION</span>
+            <span aria-hidden="true">/</span>
+            <span>EST. 2026</span>
+        </div>
+
+        <div class="hero-bottom-grid">
+            <div class="hero-desc-col">
+                <p class="hero-desc">
+                    Tola replaces paper stamping registers with end-to-end digital verifications under the Legal Metrology Act, 2009. From instrument registration to on-site testing and instant public validation.
+                </p>
+                <div class="hero-actions">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'app_redirect' %}" class="btn btn-primary">Go to Dashboard</a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-primary">Register instrument</a>
+                    {% endif %}
+                    <a href="#verify-strip" class="btn btn-secondary">Verify a certificate</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Index of Roles -->
+    <section id="index" class="landing-section" aria-labelledby="index-heading">
+        <div class="section-head">
+            <p class="label">01 &mdash; ARCHITECTURE OF ROLES</p>
+            <h2 id="index-heading" class="h2">Index of participants</h2>
+        </div>
+
+        <div class="index-list">
+            <a href="{% if user.is_authenticated %}{% url 'app_redirect' %}{% else %}{% url 'register' %}{% endif %}" class="index-row">
+                <span class="index-num">01</span>
+                <div class="index-content">
+                    <h3>Business Owner</h3>
+                    <p class="small">Register weighing and measuring devices, file periodic verification requests, follow real-time progress on an audit timeline, and download official PDF certificates.</p>
+                </div>
+                <span class="index-link-action">Register scale &rarr;</span>
+            </a>
+
+            <a href="{% if user.is_authenticated %}{% url 'app_redirect' %}{% else %}{% url 'login' %}{% endif %}" class="index-row">
+                <span class="index-num">02</span>
+                <div class="index-content">
+                    <h3>Metrology Inspector</h3>
+                    <p class="small">Conduct paperless field inspections. Live MPE tolerance checking against OIML R 76-1 Class III rules evaluates zero, accuracy, repeatability, and eccentricity tests.</p>
+                </div>
+                <span class="index-link-action">Inspector portal &rarr;</span>
+            </a>
+
+            <a href="#verify-strip" class="index-row">
+                <span class="index-num">03</span>
+                <div class="index-content">
+                    <h3>Public &amp; Auditor</h3>
+                    <p class="small">Scan the tamper-evident QR code on any verified instrument or search the public ledger. Immediate validation with business and device details; zero credentials required.</p>
+                </div>
+                <span class="index-link-action">Verify status &rarr;</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- 3. How It Works (Sticky left title) -->
+    <section id="how-it-works" class="landing-section" aria-labelledby="how-it-works-heading">
+        <div class="how-it-works-grid">
+            <div class="sticky-side">
+                <p class="label">02 &mdash; VERIFICATION LIFECYCLE</p>
+                <h2 id="how-it-works-heading" class="h2">How it works</h2>
+                <p class="small" style="color: var(--ink-soft); margin-top: 16px;">
+                    A seamless, tamper-evident digital workflow for legal metrology compliance.
+                </p>
+            </div>
+
+            <div class="steps-list">
+                <div class="step-item">
+                    <span class="label step-num">STAGE 01</span>
+                    <h3>Register</h3>
+                    <p class="body">Enter instrument specifications &mdash; category, make, model, capacity, verification scale interval, and serial number. Keep your entire equipment inventory in a structured ledger.</p>
+                </div>
+
+                <div class="step-item">
+                    <span class="label step-num">STAGE 02</span>
+                    <h3>Request</h3>
+                    <p class="body">Submit a verification filing with a preferred inspection date. The controller's office reviews the request and assigns an authorized legal metrology officer.</p>
+                </div>
+
+                <div class="step-item">
+                    <span class="label step-num">STAGE 03</span>
+                    <h3>Inspect</h3>
+                    <p class="body">The inspector visits on-site and inputs test readings into the digital inspection console. Tolerances are validated dynamically against statutory maximum permissible error rules.</p>
+                </div>
+
+                <div class="step-item">
+                    <span class="label step-num">STAGE 04</span>
+                    <h3>Certify</h3>
+                    <p class="body">Upon passing inspection, an official Certificate of Verification is generated in real time with a cryptographically unique token, sequential number, and 35mm scannable QR stamp.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Live Ledger -->
+    <section id="ledger" class="landing-section" aria-labelledby="ledger-heading">
+        <div class="section-head">
+            <p class="label">03 &mdash; PUBLIC REGISTRY METRICS</p>
+            <h2 id="ledger-heading" class="h2">Live ledger</h2>
+        </div>
+
+        <div class="ledger-grid">
+            <div class="stat-block">
+                <div class="stat-value">{{ instruments_verified }}</div>
+                <div class="stat-label">Instruments Verified</div>
+            </div>
+
+            <div class="stat-block">
+                <div class="stat-value">{{ certificates_active }}</div>
+                <div class="stat-label">Active Certificates</div>
+            </div>
+
+            <div class="stat-block">
+                <div class="stat-value">{{ avg_days_to_certify }}d</div>
+                <div class="stat-label">Avg. Days to Certify</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Verify Strip -->
+    <section id="verify-strip" class="landing-section" aria-labelledby="verify-heading">
+        <div class="verify-strip">
+            <p class="label">04 &mdash; PUBLIC VERIFICATION</p>
+            <h2 id="verify-heading" class="h2">Verify any certificate</h2>
+            <form action="{% url 'public_manual_verify' %}" method="get">
+                <div class="verify-input-wrap">
+                    <input 
+                        type="text" 
+                        name="number" 
+                        id="verify-input" 
+                        class="verify-oversized-input" 
+                        placeholder="Enter certificate number, e.g. TOLA-2026-000001" 
+                        aria-label="Certificate number to verify"
+                        required 
+                        autocomplete="off" 
+                        spellcheck="false"
+                    >
+                    <button type="submit" class="btn btn-primary">Verify &rarr;</button>
+                </div>
+            </form>
+            <p class="small" style="color: var(--ink-soft); margin-top: 12px;">
+                Enter the certificate number shown on the sticker or document, or scan the QR code directly with your device camera.
+            </p>
+        </div>
+    </section>
+</div>
+
+<!-- 6. Cropped Footer Wordmark -->
+<footer class="landing-footer" aria-label="Page Footer">
+    <div class="container">
+        <div class="footer-meta-row">
+            <div>
+                <p class="label" style="color: var(--ink);">TOLA / LEGAL METROLOGY</p>
+                <p class="small" style="color: var(--ink-soft); margin-top: 6px;">
+                    Digital verification platform under the Legal Metrology Act, 2009.
+                </p>
+            </div>
+            <div style="text-align: right;">
+                <p class="label">EST. 2026</p>
+                <p class="small" style="color: var(--ink-soft); margin-top: 6px;">
+                    Swiss editorial typography &mdash; OIML R 76-1 compliant.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="footer-wordmark" aria-hidden="true">
+        Tola
+    </div>
+</footer>
+{% endblock %}

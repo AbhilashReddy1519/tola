@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}My Instruments — Tola{% endblock %}
+{% block title %}Owner Dashboard — Tola{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -13,64 +13,138 @@
             <a href="{% url 'business_create' %}" class="btn btn-primary">Register Business Profile</a>
         </div>
     {% else %}
-        <!-- Header -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: var(--border-hairline); padding-bottom: 32px; margin-bottom: 48px; flex-wrap: wrap; gap: 24px;">
+        <!-- Greeting Header per Section 3.8 -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 24px; flex-wrap: wrap; gap: 24px;">
             <div>
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <span class="label">{{ business.get_trade_type_display }}</span>
-                    <span class="label">&bull;</span>
-                    <span class="label">{{ business.district }}</span>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                    <span class="label">{{ business.name }}</span>
+                    <span class="label" aria-hidden="true">&bull;</span>
+                    <span class="label">{{ business.get_trade_type_display }} &mdash; {{ business.district }}</span>
                 </div>
-                <h1 class="h1" style="margin-top: 8px;">{{ business.name }}</h1>
+                <h1 class="h1">{{ greeting }}</h1>
             </div>
 
-            <div style="display: flex; gap: 16px; align-items: center;">
-                <a href="{% url 'business_edit' %}" class="btn btn-secondary">Edit Business</a>
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <a href="{% url 'owner_request_list' %}" class="btn btn-secondary">My Filings</a>
                 <a href="{% url 'instrument_create' %}" class="btn btn-primary">Add Instrument</a>
             </div>
         </div>
 
-        {% if not instruments %}
-            <!-- Empty State per Section 3.6 -->
-            <div class="empty-state">
-                <p>No instruments registered yet.</p>
-                <a href="{% url 'instrument_create' %}" class="btn btn-primary">Add your first instrument</a>
+        <!-- Three Stat Blocks: Valid, Expiring in 30 days, Overdue -->
+        <div class="dashboard-stats" aria-label="Instrument Verification Metrics">
+            <div class="stat-block">
+                <div class="stat-value">{{ valid_count }}</div>
+                <div class="stat-label">Valid</div>
             </div>
-        {% else %}
-            <!-- Hairline Instrument Table -->
-            <div class="table-hairline">
-                {% for inst in instruments %}
-                    <a href="{% url 'instrument_detail' inst.pk %}" class="table-row">
-                        <div class="row-main">
-                            <span class="mono" style="min-width: 130px; font-size: 14px; font-weight: 500;">
-                                {{ inst.serial_no }}
-                            </span>
-                            <div>
-                                <div style="font-weight: 500; font-size: 16px;">
-                                    {{ inst.get_category_display }} &mdash; {{ inst.make }} {{ inst.model_no }}
-                                </div>
-                                <div class="small" style="color: var(--ink-soft); margin-top: 2px;">
-                                    Max {{ inst.max_capacity }} {{ inst.unit }} &bull; e = {{ inst.scale_interval_e }} &bull; {{ inst.get_accuracy_class_display }}
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="row-end">
-                            {% if inst.status == 'Valid' %}
-                                <span class="status-chip status-ok"><span class="dot"></span>Valid</span>
-                            {% elif inst.status == 'Expiring soon' %}
-                                <span class="status-chip status-warn"><span class="dot"></span>Expiring soon</span>
-                            {% elif inst.status == 'Expired' or inst.status == 'Failed' or inst.status == 'Revoked' %}
-                                <span class="status-chip status-bad"><span class="dot"></span>{{ inst.status }}</span>
-                            {% else %}
-                                <span class="status-chip status-pending"><span class="dot"></span>{{ inst.status }}</span>
-                            {% endif %}
-                            <span class="row-arrow" aria-hidden="true">&rarr;</span>
-                        </div>
-                    </a>
-                {% endfor %}
+            <div class="stat-block">
+                <div class="stat-value" style="color: {% if expiring_count > 0 %}var(--warn){% else %}var(--ink){% endif %};">
+                    {{ expiring_count }}
+                </div>
+                <div class="stat-label">Expiring in 30 days</div>
             </div>
-        {% endif %}
+
+            <div class="stat-block">
+                <div class="stat-value" style="color: {% if overdue_count > 0 %}var(--bad){% else %}var(--ink){% endif %};">
+                    {{ overdue_count }}
+                </div>
+                <div class="stat-label">Overdue</div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Layout: Instruments Table + Right Deadlines Rail -->
+        <div class="dashboard-layout">
+            <!-- Left: Hairline Instruments Table -->
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
+                    <p class="label">REGISTERED INSTRUMENTS ({{ instruments|length }})</p>
+                    <a href="{% url 'business_edit' %}" class="small" style="color: var(--ink-soft);">Edit Business &rarr;</a>
+                </div>
+
+                {% if not instruments %}
+                    <div class="empty-state">
+                        <p>No instruments registered yet.</p>
+                        <a href="{% url 'instrument_create' %}" class="btn btn-primary">Add your first instrument</a>
+                    </div>
+                {% else %}
+                    <div class="table-hairline">
+                        {% for inst in instruments %}
+                            <div class="table-row" style="position: relative;">
+                                <a href="{% url 'instrument_detail' inst.pk %}" style="display: flex; align-items: center; justify-content: space-between; width: 100%; text-decoration: none; color: inherit;">
+                                    <div class="row-main">
+                                        <span class="mono" style="min-width: 120px; font-size: 14px; font-weight: 500;">
+                                            {{ inst.serial_no }}
+                                        </span>
+                                        <div>
+                                            <div style="font-weight: 500; font-size: 16px;">
+                                                {{ inst.get_category_display }} &mdash; {{ inst.make }} {{ inst.model_no }}
+                                            </div>
+                                            <div class="small" style="color: var(--ink-soft); margin-top: 2px;">
+                                                Max {{ inst.max_capacity }} {{ inst.unit }} &bull; e = {{ inst.scale_interval_e }} &bull; {{ inst.get_accuracy_class_display }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row-end">
+                                        <!-- Hover Action: Request Verification -->
+                                        <span class="table-row-hover-action">
+                                            <a href="{% url 'owner_request_create' %}?instrument={{ inst.pk }}" class="btn btn-secondary" style="height: 36px; padding: 0 16px; font-size: 13px;" onclick="event.stopPropagation();">
+                                                Request verification
+                                            </a>
+                                        </span>
+
+                                        {% if inst.status == 'Valid' %}
+                                            <span class="status-chip status-ok"><span class="dot"></span>Valid</span>
+                                        {% elif inst.status == 'Expiring soon' %}
+                                            <span class="status-chip status-warn"><span class="dot"></span>Expiring soon</span>
+                                        {% elif inst.status == 'Expired' or inst.status == 'Failed' or inst.status == 'Revoked' %}
+                                            <span class="status-chip status-bad"><span class="dot"></span>{{ inst.status }}</span>
+                                        {% else %}
+                                            <span class="status-chip status-pending"><span class="dot"></span>{{ inst.status }}</span>
+                                        {% endif %}
+                                        
+                                        <span class="row-arrow" aria-hidden="true">&rarr;</span>
+                                    </div>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Rail: Next Three Deadlines in Mono -->
+            <aside class="deadlines-rail" aria-labelledby="deadlines-heading">
+                <div>
+                    <p id="deadlines-heading" class="label">NEXT THREE DEADLINES</p>
+                </div>
+
+                {% if deadlines %}
+                    {% for d in deadlines %}
+                        <div class="deadline-card">
+                            <div class="deadline-date mono">{{ d.date|date:"Y-m-d" }}</div>
+                            <div class="deadline-instrument">
+                                {{ d.instrument.get_category_display }}
+                                <div class="mono small" style="color: var(--ink-soft);">SN: {{ d.instrument.serial_no }}</div>
+                            </div>
+                            <span class="deadline-badge mono">
+                                {% if d.days_left == 0 %}
+                                    Expires today
+                                {% elif d.days_left < 0 %}
+                                    Expired {{ d.days_left|stringformat:"+d"|slice:"1:" }}d ago
+                                {% else %}
+                                    Due in {{ d.days_left }} day{{ d.days_left|pluralize }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="padding: 16px 0; color: var(--ink-soft);">
+                        <p class="mono small">No active deadlines pending renewal.</p>
+                        <p class="small" style="margin-top: 8px;">Instruments with valid certificates will list their statutory re-verification dates here.</p>
+                    </div>
+                {% endif %}
+            </aside>
+        </div>
     {% endif %}
 
 </div>

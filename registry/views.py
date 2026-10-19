@@ -56,12 +56,65 @@ class InstrumentListView(RoleRequiredMixin, ListView):
         return (
             Instrument.objects.filter(business=business)
             .select_related("business", "business__owner")
+            .prefetch_related(
+                "verification_requests",
+                "verification_requests__inspection__certificate",
+            )
             .order_by("-created_at")
         )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["business"] = get_user_business(self.request.user)
+        business = get_user_business(self.request.user)
+        context["business"] = business
+
+        from django.utils import timezone
+        now = timezone.localtime()
+        if now.hour < 12:
+            greeting_prefix = "Good morning"
+        elif now.hour < 17:
+            greeting_prefix = "Good afternoon"
+        else:
+            greeting_prefix = "Good evening"
+
+        user = self.request.user
+        owner_name = user.first_name.strip() if user.first_name else user.username
+        # Capitalize nicely if lowercase username
+        if not user.first_name and "_" in owner_name:
+            owner_name = owner_name.split("_")[-1].capitalize()
+        context["greeting"] = f"{greeting_prefix}, {owner_name}."
+
+        instruments = list(context["instruments"])
+        valid_count = 0
+        expiring_count = 0
+        overdue_count = 0
+        deadlines = []
+        today = timezone.now().date()
+
+        for inst in instruments:
+            st = inst.status
+            if st == "Valid":
+                valid_count += 1
+            elif st == "Expiring soon":
+                expiring_count += 1
+            elif st in ["Expired", "Failed", "Revoked", "Unverified"]:
+                overdue_count += 1
+
+            cert = inst.current_certificate
+            if cert and cert.valid_until and cert.is_valid:
+                days_left = (cert.valid_until - today).days
+                deadlines.append({
+                    "instrument": inst,
+                    "date": cert.valid_until,
+                    "days_left": days_left,
+                    "cert": cert,
+                })
+
+        deadlines.sort(key=lambda d: d["date"])
+        context["valid_count"] = valid_count
+        context["expiring_count"] = expiring_count
+        context["overdue_count"] = overdue_count
+        context["deadlines"] = deadlines[:3]
         return context
 
 

@@ -3,20 +3,20 @@
 {% block title %}Verify: {{ cert.number }} — Tola{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 840px;">
+<div class="container" style="max-width: 880px;">
 
-    <!-- Top Label -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: var(--border-hairline); padding-bottom: 16px;">
-        <span class="label">Legal Metrology Public Verification Ledger</span>
-        <a href="{% url 'public_manual_verify' %}" class="small" style="text-decoration: none; color: var(--ink-soft);">
-            Verify another certificate &rarr;
+    <!-- Top Label & Quick Action -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: var(--border-hairline); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+        <span class="label">LEGAL METROLOGY &bull; PUBLIC VERIFICATION RECORD</span>
+        <a href="{% url 'public_manual_verify' %}" class="small" style="color: var(--ink-soft);">
+            Verify another instrument &rarr;
         </a>
     </div>
 
     <!-- Certificate Number and State Word at DISPLAY SIZE in Semantic Colour -->
-    <header style="margin-bottom: 48px;">
-        <div class="label mono" style="font-size: 13px; color: var(--ink-soft); margin-bottom: 8px;">
-            OFFICIAL CERTIFICATE #{{ cert.number }}
+    <header style="margin-bottom: clamp(32px, 5vw, 56px);">
+        <div class="mono" style="font-size: 14px; font-weight: 500; color: var(--ink-soft); margin-bottom: 8px;">
+            CERTIFICATE NO. {{ cert.number }}
         </div>
 
         {% if cert.state == 'VALID' %}
@@ -24,19 +24,22 @@
                 VALID
             </div>
             <p class="body" style="color: var(--ok); margin-top: 8px; font-weight: 500;">
-                ● This instrument is officially calibrated, stamped, and verified for commercial trade.
+                &bull; This instrument is officially verified and stamped for commercial use under the Legal Metrology Act, 2009.
             </p>
         {% elif cert.state == 'REVOKED' %}
             <div class="display" style="color: var(--bad); font-weight: 300;">
                 REVOKED
             </div>
             <p class="body" style="color: var(--bad); margin-top: 8px; font-weight: 500;">
-                ● This certificate has been officially revoked by order of the Legal Metrology Controller.
+                &bull; This certificate has been revoked by statutory order. The instrument must not be used for commercial transactions.
             </p>
             {% if cert.revoked_reason %}
-                <div style="margin-top: 16px; padding: 16px; background-color: var(--surface); border-left: 3px solid var(--bad); border-radius: var(--radius-sm);">
-                    <div class="label" style="color: var(--bad);">Revocation Reason</div>
-                    <p class="small" style="margin-top: 4px;">{{ cert.revoked_reason }}</p>
+                <div style="margin-top: 20px; padding: 18px 24px; background-color: var(--surface); border-left: 3px solid var(--bad); border-radius: var(--radius-sm);">
+                    <div class="label" style="color: var(--bad);">STATUTORY REVOCATION ORDER</div>
+                    <p class="small" style="margin-top: 6px; color: var(--ink);">{{ cert.revoked_reason }}</p>
+                    {% if cert.revoked_at %}
+                        <div class="mono small" style="color: var(--ink-soft); margin-top: 6px;">Revoked on {{ cert.revoked_at|date:"Y-m-d H:i" }}</div>
+                    {% endif %}
                 </div>
             {% endif %}
         {% else %}
@@ -44,29 +47,28 @@
                 EXPIRED
             </div>
             <p class="body" style="color: var(--bad); margin-top: 8px; font-weight: 500;">
-                ● Periodic verification validity has expired. Instrument must not be used for commercial trade until re-verified.
+                &bull; Statutory verification validity has expired. Instrument must be re-verified before commercial use.
             </p>
         {% endif %}
     </header>
 
-    <!-- Two-Column Mono Specifications List (No Owner Email/Phone Leaked!) -->
-    <section style="margin-bottom: 48px;">
-        <span class="label">Verified Commercial Record</span>
-        <hr class="hr" style="margin: 12px 0 24px 0;">
+    <!-- Two-Column Mono Specifications List (Zero contact details leak) -->
+    <section style="margin-bottom: 48px; border-top: 1px solid var(--rule); padding-top: 32px;">
+        <span class="label">LEGAL SPECIFICATION SPECIMEN</span>
 
-        <div class="grid-12">
+        <div class="grid-12" style="margin-top: 24px;">
             <!-- Left Column: Business Entity -->
             <div class="col-6">
-                <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div style="display: flex; flex-direction: column; gap: 24px;">
                     <div>
-                        <div class="label">Commercial Business</div>
-                        <div style="font-weight: 500; font-size: 18px; margin-top: 4px;">{{ business.name }}</div>
+                        <span class="label">COMMERCIAL ENTERPRISE</span>
+                        <div style="font-size: 19px; font-weight: 500; margin-top: 4px;">{{ business.name }}</div>
                         <div class="small" style="color: var(--ink-soft); margin-top: 2px;">{{ business.get_trade_type_display }}</div>
                     </div>
 
                     <div>
-                        <div class="label">Location & Premises</div>
-                        <div class="mono" style="margin-top: 4px; font-size: 14px;">
+                        <span class="label">LOCATION &amp; PREMISES</span>
+                        <div class="mono" style="margin-top: 4px; font-size: 14px; line-height: 1.6;">
                             {{ business.address }}<br>
                             {{ business.district }} &mdash; {{ business.pincode }}
                         </div>
@@ -74,8 +76,8 @@
 
                     {% if business.licence_no %}
                         <div>
-                            <div class="label">Trade Licence</div>
-                            <div class="mono" style="margin-top: 4px;">{{ business.licence_no }}</div>
+                            <span class="label">STATUTORY TRADE LICENCE</span>
+                            <div class="mono" style="margin-top: 4px; font-size: 14px;">{{ business.licence_no }}</div>
                         </div>
                     {% endif %}
                 </div>
@@ -83,50 +85,50 @@
 
             <!-- Right Column: Metrological Specs -->
             <div class="col-6">
-                <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div style="display: flex; flex-direction: column; gap: 24px;">
                     <div>
-                        <div class="label">Instrument Category</div>
-                        <div style="font-weight: 500; font-size: 18px; margin-top: 4px;">{{ instrument.get_category_display }}</div>
+                        <span class="label">INSTRUMENT CATEGORY</span>
+                        <div style="font-size: 19px; font-weight: 500; margin-top: 4px;">{{ instrument.get_category_display }}</div>
                         <div class="small" style="color: var(--ink-soft); margin-top: 2px;">{{ instrument.make }} {{ instrument.model_no }}</div>
                     </div>
 
                     <div>
-                        <div class="label">Serial Number</div>
-                        <div class="mono" style="font-weight: 500; font-size: 16px; margin-top: 4px;">{{ instrument.serial_no }}</div>
+                        <span class="label">SERIAL NUMBER</span>
+                        <div class="mono" style="font-size: 17px; font-weight: 500; margin-top: 4px;">{{ instrument.serial_no }}</div>
                     </div>
 
-                    <div style="display: flex; gap: 32px;">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
                         <div>
-                            <div class="label">Max Capacity</div>
-                            <div class="mono" style="margin-top: 4px;">{{ instrument.max_capacity }} {{ instrument.unit }}</div>
+                            <span class="label">CAPACITY</span>
+                            <div class="mono" style="margin-top: 4px; font-size: 14px;">{{ instrument.max_capacity }} {{ instrument.unit }}</div>
                         </div>
                         <div>
-                            <div class="label">Scale Interval (e)</div>
-                            <div class="mono" style="margin-top: 4px;">{{ instrument.scale_interval_e }} {{ instrument.unit }}</div>
+                            <span class="label">INTERVAL (e)</span>
+                            <div class="mono" style="margin-top: 4px; font-size: 14px;">{{ instrument.scale_interval_e }} {{ instrument.unit }}</div>
                         </div>
                         <div>
-                            <div class="label">Class</div>
-                            <div class="mono" style="margin-top: 4px;">{{ instrument.accuracy_class }}</div>
+                            <span class="label">CLASS</span>
+                            <div class="mono" style="margin-top: 4px; font-size: 14px;">{{ instrument.accuracy_class }}</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <hr class="hr" style="margin: 28px 0 24px 0;">
+        <div class="hr" style="margin: 32px 0 24px 0;"></div>
 
-        <!-- Validity Dates -->
+        <!-- Dates & Officer -->
         <div class="grid-12">
             <div class="col-4">
-                <div class="label">Date of Issue</div>
-                <div class="mono" style="font-size: 15px; font-weight: 500; margin-top: 6px;">{{ cert.issued_on|date:"d M Y" }}</div>
+                <span class="label">DATE OF ISSUANCE</span>
+                <div class="mono" style="font-size: 16px; font-weight: 500; margin-top: 6px;">{{ cert.issued_on|date:"Y-m-d" }}</div>
             </div>
             <div class="col-4">
-                <div class="label">Valid Until</div>
-                <div class="mono" style="font-size: 15px; font-weight: 500; margin-top: 6px;">{{ cert.valid_until|date:"d M Y" }}</div>
+                <span class="label">VALID UNTIL</span>
+                <div class="mono" style="font-size: 16px; font-weight: 500; margin-top: 6px;">{{ cert.valid_until|date:"Y-m-d" }}</div>
             </div>
             <div class="col-4">
-                <div class="label">Verification Officer</div>
+                <span class="label">METROLOGY OFFICER</span>
                 <div class="mono" style="font-size: 15px; margin-top: 6px;">
                     Inspector {{ cert.inspection.inspector.get_full_name|default:cert.inspection.inspector.username }}
                 </div>
@@ -134,13 +136,14 @@
         </div>
     </section>
 
-    <!-- Actions / PDF Download -->
+    <!-- Public Audit Token & Actions -->
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding-top: 24px; border-top: var(--border-hairline);">
-        <div class="label mono" style="font-size: 11px;">
-            PUBLIC AUDIT TOKEN: {{ cert.token }}
+        <div>
+            <span class="label">PUBLIC AUDIT TOKEN</span>
+            <div class="mono" style="font-size: 12px; color: var(--ink-soft); margin-top: 4px;">{{ cert.token }}</div>
         </div>
 
-        <div style="display: flex; gap: 12px; align-items: center;">
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
             {% if can_download %}
                 <a href="{% url 'certificate_pdf' cert.number %}" class="btn btn-primary" target="_blank">
                     Download Official PDF &rarr;

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Inspect: {{ instrument.make }} {{ instrument.model_no }} — Tola{% endblock %}
+{% block title %}Inspection: {{ instrument.make }} {{ instrument.model_no }} — Tola{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 960px;">
+<div class="container" style="max-width: 1040px;">
 
     <div style="margin-bottom: 24px;">
         <a href="{% url 'inspector_queue' %}" class="small" style="text-decoration: none; color: var(--ink-soft);">
@@ -12,75 +12,86 @@
     </div>
 
     <!-- Header -->
-    <header style="border-bottom: var(--border-hairline); padding-bottom: 28px; margin-bottom: 36px;">
+    <header style="border-bottom: var(--border-hairline); padding-bottom: 28px; margin-bottom: 32px;">
         <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
-            <span class="label">ON-SITE INSPECTION</span>
-            <span class="label">&bull;</span>
+            <span class="label">LEGAL METROLOGY ACT, 2009</span>
+            <span class="label" aria-hidden="true">&bull;</span>
             <span class="label mono">REQUEST #VR-{{ req.pk }}</span>
         </div>
-        <h1 class="h1">Calibration Inspection: <em>{{ instrument.make }} {{ instrument.model_no }}</em></h1>
-        <p class="body" style="color: var(--ink-soft); margin-top: 8px;">
-            Business: <strong>{{ instrument.business.name }}</strong> &bull; Serial: <span class="mono">{{ instrument.serial_no }}</span> &bull;
-            Max: <span class="mono">{{ instrument.max_capacity }} {{ instrument.unit }}</span> &bull; e = <span class="mono">{{ instrument.scale_interval_e }} {{ instrument.unit }}</span> ({{ instrument.get_accuracy_class_display }})
-        </p>
+        <h1 class="h1">On-Site Inspection: <em>{{ instrument.make }} {{ instrument.model_no }}</em></h1>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; font-size: 14px; color: var(--ink-soft);">
+            <span>Business: <strong style="color: var(--ink);">{{ instrument.business.name }}</strong> ({{ instrument.business.district }})</span>
+            <span>Serial: <strong class="mono" style="color: var(--ink);">{{ instrument.serial_no }}</strong></span>
+            <span>Capacity: <strong class="mono" style="color: var(--ink);">{{ instrument.max_capacity }} {{ instrument.unit }}</strong></span>
+            <span>Scale interval: <strong class="mono" style="color: var(--ink);">e = {{ instrument.scale_interval_e }} {{ instrument.unit }}</strong></span>
+            <span>Class: <strong class="mono" style="color: var(--ink);">{{ instrument.get_accuracy_class_display }}</strong></span>
+        </div>
     </header>
 
-    <form method="post" id="inspection-form" style="display: flex; flex-direction: column; gap: 48px;">
+    <!-- Step Navigation Tabs -->
+    <nav class="inspection-tabs" aria-label="Inspection Sections">
+        <button type="button" class="inspection-tab-btn active" data-target="section-zero">1. Zero Setting</button>
+        <button type="button" class="inspection-tab-btn" data-target="section-accuracy">2. Accuracy Test</button>
+        <button type="button" class="inspection-tab-btn" data-target="section-repeatability">3. Repeatability Test</button>
+        <button type="button" class="inspection-tab-btn" data-target="section-eccentricity">4. Eccentricity Test</button>
+        <button type="button" class="inspection-tab-btn" data-target="section-remarks">5. Remarks &amp; Seals</button>
+    </nav>
+
+    <form method="post" id="inspection-form" style="display: flex; flex-direction: column;">
         {% csrf_token %}
 
-        <!-- Section 1: Zero Check -->
-        <section style="padding: 24px; background-color: var(--surface); border-radius: var(--radius-sm); border: var(--border-hairline);">
-            <span class="label">Step 1 / Initial Verification</span>
-            <h3 class="h3" style="margin-top: 6px; margin-bottom: 12px;">Zero Setting Check</h3>
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
-                <input type="checkbox" name="zero_ok" value="true" checked style="width: 20px; height: 20px; accent-color: var(--ink);">
-                <span style="font-size: 15px; font-weight: 500;">
-                    Zero indication is within &plusmn;0.25 e under zero load (Zero Check PASSED)
-                </span>
-            </label>
-            <p class="small" style="color: var(--ink-soft); margin-top: 8px;">
-                Note: In accordance with OIML R 76-1, an uncorrected zero check failure immediately disqualifies the instrument.
-            </p>
+        <!-- 1. Zero Setting Check -->
+        <section id="section-zero" class="inspection-section" aria-labelledby="heading-zero">
+            <span class="label">STAGE 01 &mdash; INITIAL VERIFICATION</span>
+            <h3 id="heading-zero" class="h3" style="margin-top: 6px; margin-bottom: 16px;">Zero Setting &amp; Tare Check</h3>
+            
+            <div style="padding: 16px; background-color: var(--canvas); border-radius: var(--radius-sm); border: 1px solid var(--rule); margin-bottom: 16px;">
+                <label style="display: flex; align-items: flex-start; gap: 14px; cursor: pointer;">
+                    <input type="checkbox" name="zero_ok" id="zero-ok-checkbox" value="true" checked style="width: 22px; height: 22px; margin-top: 2px; accent-color: var(--ink);">
+                    <div>
+                        <span style="font-size: 16px; font-weight: 500; display: block;">
+                            Zero indication is within &plusmn;0.25 e under zero load (Zero Check PASSED)
+                        </span>
+                        <span class="small" style="color: var(--ink-soft); display: block; margin-top: 4px;">
+                            Zero tracking and no-load balance condition comply with OIML R 76-1 Section 4.5.
+                        </span>
+                    </div>
+                </label>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary next-step-btn" data-next="section-accuracy">Next: Accuracy Test &rarr;</button>
+            </div>
         </section>
 
-        <!-- Section 2: Test Readings (HTMX Powered) -->
-        <section>
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">
+        <!-- 2. Accuracy Test -->
+        <section id="section-accuracy" class="inspection-section" aria-labelledby="heading-accuracy">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
                 <div>
-                    <span class="label">Step 2 / Accuracy, Repeatability & Eccentricity</span>
-                    <h3 class="h3" style="margin-top: 4px;">Test Load Readings</h3>
+                    <span class="label">STAGE 02 &mdash; TOLERANCE TESTING</span>
+                    <h3 id="heading-accuracy" class="h3" style="margin-top: 4px;">Accuracy (Linearity) Test</h3>
+                    <p class="small" style="color: var(--ink-soft);">Apply standard test masses in ascending and descending steps across the capacity range.</p>
                 </div>
-
-                <button type="button" class="btn btn-secondary" style="height: 38px; padding: 0 16px; font-size: 13px;"
-                        onclick="addReadingRow()">
-                    + Add Reading Row
+                <button type="button" class="btn btn-secondary" style="height: 38px; padding: 0 16px; font-size: 13px;" onclick="addReadingRow('ACCURACY')">
+                    + Add Accuracy Reading
                 </button>
             </div>
 
-            <!-- Table Header -->
-            <div style="display: grid; grid-template-columns: 180px 140px 140px 1fr auto; gap: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--rule);">
-                <span class="label">Test Kind</span>
+            <div class="readings-header" style="display: grid; grid-template-columns: 140px 140px 1fr auto; gap: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--rule);">
                 <span class="label">Test Load ({{ instrument.unit }})</span>
                 <span class="label">Indication ({{ instrument.unit }})</span>
-                <span class="label">Live Error & MPE Status</span>
+                <span class="label">Live Error &amp; MPE Evaluation</span>
                 <span></span>
             </div>
 
-            <!-- Readings Container -->
-            <div id="readings-container">
-                <!-- Initial Row 1: Accuracy at Low Load -->
-                <div class="reading-row" id="row-1" style="display: grid; grid-template-columns: 180px 140px 140px 1fr auto; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--rule);">
-                    <div>
-                        <select name="kind[]" style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 8px; font-family: var(--font-sans); font-size: 14px;">
-                            <option value="ACCURACY" selected>Accuracy</option>
-                            <option value="REPEATABILITY">Repeatability</option>
-                            <option value="ECCENTRICITY">Eccentricity</option>
-                        </select>
-                    </div>
+            <div id="readings-accuracy" class="readings-subgroup">
+                <!-- Accuracy Row 1: Low load -->
+                <div class="reading-row" id="row-1" style="display: grid; grid-template-columns: 140px 140px 1fr auto; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--rule);">
+                    <input type="hidden" name="kind[]" value="ACCURACY">
                     <div>
                         <input type="number" step="any" name="test_load[]" placeholder="Load ({{ instrument.unit }})" required
                                hx-post="{% url 'inspector_reading_row' req.pk %}"
-                               hx-trigger="keyup changed delay:250ms, change"
+                               hx-trigger="keyup changed delay:200ms, change"
                                hx-include="closest .reading-row"
                                hx-target="#calc-1"
                                style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 10px; font-family: var(--font-mono); font-size: 14px;">
@@ -88,32 +99,26 @@
                     <div>
                         <input type="number" step="any" name="indication[]" placeholder="Indication" required
                                hx-post="{% url 'inspector_reading_row' req.pk %}"
-                               hx-trigger="keyup changed delay:250ms, change"
+                               hx-trigger="keyup changed delay:200ms, change"
                                hx-include="closest .reading-row"
                                hx-target="#calc-1"
                                style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 10px; font-family: var(--font-mono); font-size: 14px;">
                     </div>
-                    <div id="calc-1" style="display: flex; align-items: center; gap: 12px;">
+                    <div id="calc-1" class="reading-calc-target" style="display: flex; align-items: center; gap: 12px;">
                         <span class="small" style="color: var(--ink-soft); font-size: 12px;">Enter load and indication</span>
                     </div>
                     <div>
-                        <button type="button" onclick="this.closest('.reading-row').remove();" class="btn btn-secondary" style="height: 36px; padding: 0 12px; font-size: 12px; color: var(--bad); border-color: var(--rule);">&times;</button>
+                        <button type="button" onclick="this.closest('.reading-row').remove(); updateOverallResult();" class="btn btn-secondary" style="height: 36px; padding: 0 12px; font-size: 14px; color: var(--bad); border-color: var(--rule);" aria-label="Remove reading">&times;</button>
                     </div>
                 </div>
 
-                <!-- Initial Row 2: Accuracy at Half Capacity -->
-                <div class="reading-row" id="row-2" style="display: grid; grid-template-columns: 180px 140px 140px 1fr auto; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--rule);">
-                    <div>
-                        <select name="kind[]" style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 8px; font-family: var(--font-sans); font-size: 14px;">
-                            <option value="ACCURACY" selected>Accuracy</option>
-                            <option value="REPEATABILITY">Repeatability</option>
-                            <option value="ECCENTRICITY">Eccentricity</option>
-                        </select>
-                    </div>
+                <!-- Accuracy Row 2: Mid load -->
+                <div class="reading-row" id="row-2" style="display: grid; grid-template-columns: 140px 140px 1fr auto; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--rule);">
+                    <input type="hidden" name="kind[]" value="ACCURACY">
                     <div>
                         <input type="number" step="any" name="test_load[]" placeholder="Load ({{ instrument.unit }})" required
                                hx-post="{% url 'inspector_reading_row' req.pk %}"
-                               hx-trigger="keyup changed delay:250ms, change"
+                               hx-trigger="keyup changed delay:200ms, change"
                                hx-include="closest .reading-row"
                                hx-target="#calc-2"
                                style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 10px; font-family: var(--font-mono); font-size: 14px;">
@@ -121,48 +126,224 @@
                     <div>
                         <input type="number" step="any" name="indication[]" placeholder="Indication" required
                                hx-post="{% url 'inspector_reading_row' req.pk %}"
-                               hx-trigger="keyup changed delay:250ms, change"
+                               hx-trigger="keyup changed delay:200ms, change"
                                hx-include="closest .reading-row"
                                hx-target="#calc-2"
                                style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 10px; font-family: var(--font-mono); font-size: 14px;">
                     </div>
-                    <div id="calc-2" style="display: flex; align-items: center; gap: 12px;">
+                    <div id="calc-2" class="reading-calc-target" style="display: flex; align-items: center; gap: 12px;">
                         <span class="small" style="color: var(--ink-soft); font-size: 12px;">Enter load and indication</span>
                     </div>
                     <div>
-                        <button type="button" onclick="this.closest('.reading-row').remove();" class="btn btn-secondary" style="height: 36px; padding: 0 12px; font-size: 12px; color: var(--bad); border-color: var(--rule);">&times;</button>
+                        <button type="button" onclick="this.closest('.reading-row').remove(); updateOverallResult();" class="btn btn-secondary" style="height: 36px; padding: 0 12px; font-size: 14px; color: var(--bad); border-color: var(--rule);" aria-label="Remove reading">&times;</button>
                     </div>
                 </div>
             </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 24px;">
+                <button type="button" class="btn btn-secondary prev-step-btn" data-prev="section-zero">&larr; Back</button>
+                <button type="button" class="btn btn-secondary next-step-btn" data-next="section-repeatability">Next: Repeatability Test &rarr;</button>
+            </div>
         </section>
 
-        <!-- Section 3: Remarks -->
-        <section>
+        <!-- 3. Repeatability Test -->
+        <section id="section-repeatability" class="inspection-section" aria-labelledby="heading-repeatability">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <span class="label">STAGE 03 &mdash; CONSISTENCY TESTING</span>
+                    <h3 id="heading-repeatability" class="h3" style="margin-top: 4px;">Repeatability Test</h3>
+                    <p class="small" style="color: var(--ink-soft);">Repeat test load (typically 0.5 Max) at least 3 times. Differences must not exceed MPE.</p>
+                </div>
+                <button type="button" class="btn btn-secondary" style="height: 38px; padding: 0 16px; font-size: 13px;" onclick="addReadingRow('REPEATABILITY')">
+                    + Add Repeatability Reading
+                </button>
+            </div>
+
+            <div class="readings-header" style="display: grid; grid-template-columns: 140px 140px 1fr auto; gap: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--rule);">
+                <span class="label">Test Load ({{ instrument.unit }})</span>
+                <span class="label">Indication ({{ instrument.unit }})</span>
+                <span class="label">Live Error &amp; MPE Evaluation</span>
+                <span></span>
+            </div>
+
+            <div id="readings-repeatability" class="readings-subgroup"></div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 24px;">
+                <button type="button" class="btn btn-secondary prev-step-btn" data-prev="section-accuracy">&larr; Back</button>
+                <button type="button" class="btn btn-secondary next-step-btn" data-next="section-eccentricity">Next: Eccentricity Test &rarr;</button>
+            </div>
+        </section>
+
+        <!-- 4. Eccentricity Test -->
+        <section id="section-eccentricity" class="inspection-section" aria-labelledby="heading-eccentricity">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <span class="label">STAGE 04 &mdash; OFF-CENTRE CORNER TESTING</span>
+                    <h3 id="heading-eccentricity" class="h3" style="margin-top: 4px;">Eccentricity (Corner) Test</h3>
+                    <p class="small" style="color: var(--ink-soft);">Apply 1/3 Max load in four quadrant positions on the load receptor.</p>
+                </div>
+                <button type="button" class="btn btn-secondary" style="height: 38px; padding: 0 16px; font-size: 13px;" onclick="addReadingRow('ECCENTRICITY')">
+                    + Add Eccentricity Reading
+                </button>
+            </div>
+
+            <div class="readings-header" style="display: grid; grid-template-columns: 140px 140px 1fr auto; gap: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--rule);">
+                <span class="label">Test Load ({{ instrument.unit }})</span>
+                <span class="label">Indication ({{ instrument.unit }})</span>
+                <span class="label">Live Error &amp; MPE Evaluation</span>
+                <span></span>
+            </div>
+
+            <div id="readings-eccentricity" class="readings-subgroup"></div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 24px;">
+                <button type="button" class="btn btn-secondary prev-step-btn" data-prev="section-repeatability">&larr; Back</button>
+                <button type="button" class="btn btn-secondary next-step-btn" data-next="section-remarks">Next: Remarks &amp; Seals &rarr;</button>
+            </div>
+        </section>
+
+        <!-- 5. Remarks & Verification Seals -->
+        <section id="section-remarks" class="inspection-section" aria-labelledby="heading-remarks">
+            <span class="label">STAGE 05 &mdash; STATUTORY RECORD</span>
+            <h3 id="heading-remarks" class="h3" style="margin-top: 4px; margin-bottom: 16px;">Inspection Remarks &amp; Stamping Notes</h3>
+            
             <div class="field">
-                <textarea name="remarks" id="inspector-remarks" placeholder="Notes on ambient conditions, eccentric errors, stamping seals applied..."></textarea>
-                <label for="inspector-remarks">Inspector Field Remarks & Stamping Notes</label>
+                <textarea name="remarks" id="inspector-remarks" placeholder="Enter ambient temperature, physical seal numbers affixed, eccentric observations..."></textarea>
+                <label for="inspector-remarks">Inspector Field Remarks &amp; Seal Identifiers</label>
+            </div>
+
+            <div style="display: flex; justify-content: flex-start; margin-top: 16px;">
+                <button type="button" class="btn btn-secondary prev-step-btn" data-prev="section-eccentricity">&larr; Back</button>
             </div>
         </section>
 
-        <!-- Section 4: Submission Actions -->
-        <div style="display: flex; gap: 20px; align-items: center; padding-top: 16px; border-top: var(--border-hairline);">
-            <button type="submit" class="btn btn-primary" style="height: 52px; padding: 0 36px; font-size: 16px;">
-                Complete & Submit Inspection
-            </button>
-            <a href="{% url 'inspector_queue' %}" class="btn btn-secondary">Discard & Exit</a>
+        <!-- Sticky Bottom Bar: Result so far + Submit Inspection -->
+        <div class="inspection-sticky-bar" role="region" aria-label="Inspection Evaluation Status">
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <span class="label">LIVE METROLOGY EVALUATION</span>
+                <div id="live-overall-result">
+                    <span class="status-chip status-ok"><span class="dot"></span>Result so far: PASS</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <a href="{% url 'inspector_queue' %}" class="btn btn-secondary" style="height: 44px; padding: 0 20px;">Discard</a>
+                <button type="submit" class="btn btn-primary" style="height: 44px; padding: 0 28px;">
+                    Submit inspection &rarr;
+                </button>
+            </div>
         </div>
+
     </form>
 </div>
 
 <script>
     let rowCounter = 2;
-    function addReadingRow() {
+
+    function addReadingRow(kind) {
         rowCounter++;
-        const url = "{% url 'inspector_reading_row' req.pk %}?row_id=" + rowCounter;
-        htmx.ajax('GET', url, {
-            target: '#readings-container',
-            swap: 'beforeend'
-        });
+        const targetContainerId = kind === 'REPEATABILITY' ? '#readings-repeatability'
+                                : kind === 'ECCENTRICITY' ? '#readings-eccentricity'
+                                : '#readings-accuracy';
+        
+        const row = document.createElement('div');
+        row.className = 'reading-row';
+        row.id = 'row-' + rowCounter;
+        row.style.cssText = 'display: grid; grid-template-columns: 140px 140px 1fr auto; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--rule);';
+        
+        row.innerHTML = `
+            <input type="hidden" name="kind[]" value="${kind}">
+            <div>
+                <input type="number" step="any" name="test_load[]" placeholder="Load ({{ instrument.unit }})" required
+                       hx-post="{% url 'inspector_reading_row' req.pk %}"
+                       hx-trigger="keyup changed delay:200ms, change"
+                       hx-include="closest .reading-row"
+                       hx-target="#calc-${rowCounter}"
+                       style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 10px; font-family: var(--font-mono); font-size: 14px;">
+            </div>
+            <div>
+                <input type="number" step="any" name="indication[]" placeholder="Indication" required
+                       hx-post="{% url 'inspector_reading_row' req.pk %}"
+                       hx-trigger="keyup changed delay:200ms, change"
+                       hx-include="closest .reading-row"
+                       hx-target="#calc-${rowCounter}"
+                       style="width: 100%; height: 44px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 0 10px; font-family: var(--font-mono); font-size: 14px;">
+            </div>
+            <div id="calc-${rowCounter}" class="reading-calc-target" style="display: flex; align-items: center; gap: 12px;">
+                <span class="small" style="color: var(--ink-soft); font-size: 12px;">Enter load and indication</span>
+            </div>
+            <div>
+                <button type="button" onclick="this.closest('.reading-row').remove(); updateOverallResult();" class="btn btn-secondary" style="height: 36px; padding: 0 12px; font-size: 14px; color: var(--bad); border-color: var(--rule);" aria-label="Remove reading">&times;</button>
+            </div>
+        `;
+        document.querySelector(targetContainerId).appendChild(row);
+        htmx.process(row);
+        updateOverallResult();
     }
+
+    function updateOverallResult() {
+        const zeroCheck = document.getElementById('zero-ok-checkbox');
+        const zeroPass = zeroCheck ? zeroCheck.checked : true;
+        const failChips = document.querySelectorAll('.reading-calc-target .status-bad');
+        const overallDiv = document.getElementById('live-overall-result');
+
+        if (!zeroPass || failChips.length > 0) {
+            overallDiv.innerHTML = '<span class="status-chip status-bad"><span class="dot"></span>Result so far: FAIL</span>';
+        } else {
+            overallDiv.innerHTML = '<span class="status-chip status-ok"><span class="dot"></span>Result so far: PASS</span>';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab switching
+        const tabs = document.querySelectorAll('.inspection-tab-btn');
+        const sections = document.querySelectorAll('.inspection-section');
+
+        function showSection(targetId) {
+            sections.forEach(s => {
+                if (s.id === targetId) {
+                    s.style.display = 'block';
+                    s.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    s.style.display = 'none';
+                }
+            });
+            tabs.forEach(t => {
+                if (t.dataset.target === targetId) {
+                    t.classList.add('active');
+                } else {
+                    t.classList.remove('active');
+                }
+            });
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => showSection(tab.dataset.target));
+        });
+
+        document.querySelectorAll('.next-step-btn').forEach(btn => {
+            btn.addEventListener('click', () => showSection(btn.dataset.next));
+        });
+
+        document.querySelectorAll('.prev-step-btn').forEach(btn => {
+            btn.addEventListener('click', () => showSection(btn.dataset.prev));
+        });
+
+        // Initialize: show first section only
+        showSection('section-zero');
+
+        // Zero check event listener
+        const zeroCheck = document.getElementById('zero-ok-checkbox');
+        if (zeroCheck) {
+            zeroCheck.addEventListener('change', updateOverallResult);
+        }
+
+        // HTMX after swap listener for reading calculations
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            if (evt.detail.target && evt.detail.target.classList.contains('reading-calc-target')) {
+                updateOverallResult();
+            }
+        });
+    });
 </script>
 {% endblock %}

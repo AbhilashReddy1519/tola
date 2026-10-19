@@ -6,44 +6,72 @@
 <div class="container">
 
     <div style="border-bottom: var(--border-hairline); padding-bottom: 32px; margin-bottom: 48px;">
-        <span class="label">Legal Metrology Officer</span>
-        <h1 class="h1" style="margin-top: 8px;">Inspector <em>queue</em></h1>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <span class="label">LEGAL METROLOGY DIVISION</span>
+            <span class="label" aria-hidden="true">&bull;</span>
+            <span class="label">AUTHORIZED INSPECTOR CONSOLE</span>
+        </div>
+        <h1 class="h1">Inspector <em>queue</em></h1>
         <p class="body" style="color: var(--ink-soft); margin-top: 8px;">
-            Open verification tasks assigned to you, ordered by preferred appointment date.
+            Inspector queue of open verification assignments, ordered chronologically by preferred on-site appointment date.
         </p>
     </div>
 
     {% if not requests %}
         <div class="empty-state">
             <p>Your inspection queue is clear.</p>
+            <p class="small" style="color: var(--ink-soft); margin-top: 8px;">
+                New assignments from the central metrology controller will appear here automatically.
+            </p>
         </div>
     {% else %}
-        <div class="table-hairline">
+        <div class="table-hairline" aria-label="Inspection Assignments">
             {% for r in requests %}
-                <div class="table-row" style="cursor: default;">
-                    <div class="row-main">
-                        <span class="mono" style="min-width: 90px; font-size: 14px; font-weight: 500;">
-                            VR-#{{ r.pk }}
-                        </span>
-                        <div>
-                            <div style="font-weight: 500; font-size: 16px;">
-                                {{ r.instrument.make }} {{ r.instrument.model_no }}
-                                <span class="mono" style="font-size: 13px; color: var(--ink-soft); margin-left: 8px;">({{ r.instrument.serial_no }})</span>
+                <a href="{% url 'inspector_inspect' r.pk %}" class="table-row" style="padding: 24px 16px; min-height: 88px;">
+                    <div class="row-main" style="gap: 32px; flex-wrap: wrap;">
+                        <div style="min-width: 130px;">
+                            <span class="label">REQUEST</span>
+                            <div class="mono" style="font-size: 15px; font-weight: 500; color: var(--ink); margin-top: 4px;">
+                                #VR-{{ r.pk }}
                             </div>
-                            <div class="small" style="color: var(--ink-soft); margin-top: 2px;">
-                                Business: <strong>{{ r.instrument.business.name }}</strong> &bull;
-                                Address: {{ r.instrument.business.address }}, {{ r.instrument.business.district }} &bull;
-                                Preferred Date: <span class="mono">{{ r.preferred_date|date:"d M Y" }}</span>
+                        </div>
+
+                        <div>
+                            <span class="label">INSTRUMENT</span>
+                            <div style="font-weight: 500; font-size: 17px; margin-top: 4px;">
+                                {{ r.instrument.get_category_display }} &mdash; {{ r.instrument.make }} {{ r.instrument.model_no }}
+                            </div>
+                            <div class="small" style="color: var(--ink-soft); margin-top: 4px;">
+                                Serial: <span class="mono">{{ r.instrument.serial_no }}</span> &bull;
+                                Max: <span class="mono">{{ r.instrument.max_capacity }} {{ r.instrument.unit }}</span> &bull;
+                                Class: <span class="mono">{{ r.instrument.get_accuracy_class_display }}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="label">BUSINESS &amp; LOCATION</span>
+                            <div style="font-weight: 500; font-size: 15px; margin-top: 4px;">
+                                {{ r.instrument.business.name }}
+                            </div>
+                            <div class="small" style="color: var(--ink-soft); margin-top: 4px;">
+                                {{ r.instrument.business.district }}, {{ r.instrument.business.pincode }}
                             </div>
                         </div>
                     </div>
 
-                    <div class="row-end">
-                        <a href="{% url 'inspector_inspect' r.pk %}" class="btn btn-primary" style="height: 40px; padding: 0 20px; font-size: 13px;">
-                            Start Inspection &rarr;
-                        </a>
+                    <div class="row-end" style="gap: 24px;">
+                        <div style="text-align: right;">
+                            <span class="label">PREFERRED DATE</span>
+                            <div class="mono" style="font-size: 15px; font-weight: 500; margin-top: 4px;">
+                                {{ r.preferred_date|date:"Y-m-d" }}
+                            </div>
+                        </div>
+
+                        <span class="btn btn-primary" style="height: 42px; padding: 0 20px; font-size: 14px;">
+                            Inspect &rarr;
+                        </span>
                     </div>
-                </div>
+                </a>
             {% endfor %}
         </div>
     {% endif %}

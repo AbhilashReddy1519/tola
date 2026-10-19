@@ -1,50 +1,81 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Console: Verification Requests — Tola{% endblock %}
+{% block title %}Admin Console: Legal Metrology Operations — Tola{% endblock %}
 
 {% block content %}
 <div class="container">
 
-    <div style="border-bottom: var(--border-hairline); padding-bottom: 32px; margin-bottom: 48px;">
-        <span class="label">Controller's Office</span>
-        <h1 class="h1" style="margin-top: 8px;">Admin <em>console</em></h1>
+    <div style="border-bottom: var(--border-hairline); padding-bottom: 32px; margin-bottom: 40px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <span class="label">CONTROLLER OF LEGAL METROLOGY</span>
+            <span class="label" aria-hidden="true">&bull;</span>
+            <span class="label">CENTRAL OPERATIONS DESK</span>
+        </div>
+        <h1 class="h1">Admin <em>console</em></h1>
         <p class="body" style="color: var(--ink-soft); margin-top: 8px;">
-            Assign inspection officers, review open calibration requests, and monitor audit timelines.
+            Dispatch inspection officers, oversee pending instrument filings, and maintain statutory verification compliance.
         </p>
     </div>
 
     {% if not requests %}
         <div class="empty-state">
             <p>No verification requests filed yet.</p>
+            <p class="small" style="color: var(--ink-soft); margin-top: 8px;">
+                Incoming filings submitted by registered business owners will appear here for review and assignment.
+            </p>
         </div>
     {% else %}
-        <div class="table-hairline">
+        <div class="table-hairline" aria-label="Verification Requests Ledger">
             {% for r in requests %}
-                <div class="table-row" style="cursor: default;">
-                    <div class="row-main">
-                        <span class="mono" style="min-width: 90px; font-size: 14px; font-weight: 500;">
-                            VR-#{{ r.pk }}
-                        </span>
-                        <div>
-                            <div style="font-weight: 500; font-size: 16px;">
-                                {{ r.instrument.make }} {{ r.instrument.model_no }}
-                                <span class="mono" style="font-size: 13px; color: var(--ink-soft); margin-left: 8px;">({{ r.instrument.serial_no }})</span>
+                <div class="table-row" style="padding: 20px 16px; min-height: 84px; cursor: default;">
+                    <div class="row-main" style="gap: 28px; flex-wrap: wrap;">
+                        <div style="min-width: 120px;">
+                            <span class="label">REQUEST ID</span>
+                            <div class="mono" style="font-size: 15px; font-weight: 500; color: var(--ink); margin-top: 4px;">
+                                #VR-{{ r.pk }}
+                            </div>
+                        </div>
+
+                        <div style="min-width: 220px;">
+                            <span class="label">BUSINESS</span>
+                            <div style="font-weight: 500; font-size: 16px; margin-top: 4px;">
+                                {{ r.instrument.business.name }}
                             </div>
                             <div class="small" style="color: var(--ink-soft); margin-top: 2px;">
-                                Business: <strong>{{ r.instrument.business.name }}</strong> &bull;
-                                Pref: <span class="mono">{{ r.preferred_date|date:"d M Y" }}</span>
-                                {% if r.inspector %} &bull; Inspector: <strong>{{ r.inspector.username }}</strong>{% endif %}
+                                {{ r.instrument.business.district }} &bull; Filed by {{ r.requested_by.username }}
                             </div>
+                        </div>
+
+                        <div>
+                            <span class="label">INSTRUMENT</span>
+                            <div style="font-weight: 500; font-size: 15px; margin-top: 4px;">
+                                {{ r.instrument.get_category_display }} &mdash; {{ r.instrument.make }} {{ r.instrument.model_no }}
+                            </div>
+                            <div class="small" style="color: var(--ink-soft); margin-top: 2px;">
+                                Serial: <span class="mono">{{ r.instrument.serial_no }}</span> &bull; Max {{ r.instrument.max_capacity }} {{ r.instrument.unit }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="label">PREFERRED DATE</span>
+                            <div class="mono" style="font-size: 14px; font-weight: 500; margin-top: 4px;">
+                                {{ r.preferred_date|date:"Y-m-d" }}
+                            </div>
+                            {% if r.inspector %}
+                                <div class="small" style="color: var(--ink-soft); margin-top: 2px;">
+                                    Officer: <strong>{{ r.inspector.get_full_name|default:r.inspector.username }}</strong>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
 
-                    <div class="row-end">
+                    <div class="row-end" style="gap: 16px; flex-wrap: wrap;">
                         {% if r.status == 'PASSED' or r.status == 'CERTIFIED' %}
                             <span class="status-chip status-ok"><span class="dot"></span>{{ r.get_status_display }}</span>
                         {% elif r.status == 'SUBMITTED' %}
                             <span class="status-chip status-warn"><span class="dot"></span>Needs Assignment</span>
-                            <a href="{% url 'admin_request_assign' r.pk %}" class="btn btn-primary" style="height: 38px; padding: 0 18px; font-size: 13px;">
-                                Assign
+                            <a href="{% url 'admin_request_assign' r.pk %}" class="btn btn-primary" style="height: 38px; padding: 0 20px; font-size: 13px;">
+                                Assign &rarr;
                             </a>
                         {% elif r.status == 'ASSIGNED' %}
                             <span class="status-chip status-pending"><span class="dot"></span>Assigned</span>
