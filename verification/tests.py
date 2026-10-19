@@ -1,6 +1,8 @@
 from decimal import Decimal
+from io import StringIO
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
+from django.core.management import call_command
 from django.db import connection
 from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
@@ -347,3 +349,62 @@ class AdminRequestListQueryCountTests(TestCase):
         self.assertEqual(response.status_code, 200)
         # Session + User + 1 single SELECT with select_related for all requests
         self.assertLessEqual(len(ctx.captured_queries), 3)
+
+
+class SeedDemoCommandTests(TestCase):
+    def test_seed_demo_runs_cleanly_and_is_idempotent(self):
+        from certificates.models import Certificate
+        from django.utils import timezone
+
+        out = StringIO()
+        # First execution: fresh database run
+        call_command("seed_demo", stdout=out)
+        output = out.getvalue()
+
+        # Check user roles created
+        self.assertEqual(User.objects.filter(role=User.Role.ADMIN).count(), 1)
+        self.assertEqual(User.objects.filter(role=User.Role.INSPECTOR).count(), 2)
+        self.assertEqual(User.objects.filter(role=User.Role.OWNER).count(), 5)
+
+        # Check 5 businesses and 25 instruments
+        self.assertEqual(Business.objects.count(), 5)
+        self.assertEqual(Instrument.objects.count(), 25)
+
+        # Check requests in every status
+        self.assertTrue(VerificationRequest.objects.filter(status=RequestStatus.SUBMITTED).exists())
+        self.assertTrue(VerificationRequest.objects.filter(status=RequestStatus.ASSIGNED).exists())
+        self.assertTrue(VerificationRequest.objects.filter(status=RequestStatus.CERTIFIED).exists())
+        self.assertTrue(VerificationRequest.objects.filter(status=RequestStatus.FAILED).exists())
+        self.assertTrue(VerificationRequest.objects.filter(status=RequestStatus.CANCELLED).exists())
+
+        # Check certificates in all states
+        certs = Certificate.objects.all()
+        today = timezone.now().date()
+        valid_certs = [c for c in certs if c.state == "VALID" and (c.valid_until - today).days > 30]
+        expiring_certs = [c for c in certs if c.state == "VALID" and 0 <= (c.valid_until - today).days <= 30]
+        expired_certs = [c for c in certs if c.state == "EXPIRED"]
+        revoked_certs = [c for c in certs if c.state == "REVOKED"]
+
+        self.assertGreaterEqual(len(valid_certs), 1)
+        self.assertGreaterEqual(len(expiring_certs), 1)
+        self.assertGreaterEqual(len(expired_certs), 1)
+        self.assertGreaterEqual(len(revoked_certs), 1)
+
+        # Check 30-day and 7-day targets exist
+        self.assertTrue(any((c.valid_until - today).days == 30 for c in expiring_certs))
+        self.assertTrue(any((c.valid_until - today).days == 7 for c in expiring_certs))
+
+        # Check printed credentials output
+        self.assertIn("admin", output)
+        self.assertIn("AdminPassword123!", output)
+        self.assertIn("inspector_rajesh", output)
+        self.assertIn("owner_ramesh", output)
+
+        # Second execution: test complete idempotency
+        out2 = StringIO()
+        call_command("seed_demo", stdout=out2)
+        self.assertEqual(User.objects.filter(role=User.Role.ADMIN).count(), 1)
+        self.assertEqual(User.objects.filter(role=User.Role.INSPECTOR).count(), 2)
+        self.assertEqual(User.objects.filter(role=User.Role.OWNER).count(), 5)
+        self.assertEqual(Business.objects.count(), 5)
+        self.assertEqual(Instrument.objects.count(), 25)

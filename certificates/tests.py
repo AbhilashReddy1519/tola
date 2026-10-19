@@ -1,7 +1,10 @@
 import datetime
+from io import StringIO
 import uuid
 from decimal import Decimal
 from django.contrib.auth import get_user_model
+from django.core import mail
+from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -340,3 +343,98 @@ class AdminRevokeCertificateViewTests(TestCase):
         response = self.client.get(self.revoke_url)
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse("login"), response.url)
+
+
+class SendExpiryRemindersCommandTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            username="owner_reminder",
+            email="owner.reminder@example.com",
+            password="password123",
+            role=User.Role.OWNER,
+        )
+        self.biz = Business.objects.create(
+            owner=self.owner,
+            name="Reminder Kirana Store",
+            trade_type=TradeType.GROCERY,
+            address="Main Bazaar",
+            district="Hyderabad",
+            pincode="500001",
+        )
+        self.inspector = User.objects.create_user(
+            username="insp_reminder", password="password123", role=User.Role.INSPECTOR
+        )
+        self.today = timezone.now().date()
+
+        def make_cert(serial, valid_until, is_revoked=False):
+            inst = Instrument.objects.create(
+                business=self.biz,
+                category=Category.COUNTER_SCALE,
+                make="Essae",
+                model_no="E-1",
+                serial_no=serial,
+                max_capacity=Decimal("15"),
+                unit=Unit.KG,
+                scale_interval_e=Decimal("0.005"),
+                accuracy_class=AccuracyClass.CLASS_III,
+            )
+            req = VerificationRequest.objects.create(
+                instrument=inst,
+                requested_by=self.owner,
+                preferred_date=self.today,
+                status=RequestStatus.PASSED,
+                inspector=self.inspector,
+            )
+            insp = Inspection.objects.create(
+                request=req,
+                inspector=self.inspector,
+                zero_ok=True,
+                result=InspectionResult.PASS,
+            )
+            cert = Certificate.objects.create(
+                inspection=insp,
+                number=f"TOLA-REM-{serial}",
+                issued_on=self.today - datetime.timedelta(days=335),
+                valid_until=valid_until,
+            )
+            if is_revoked:
+                cert.revoked_at = timezone.now()
+                cert.revoked_reason = "Revoked for test"
+                cert.save()
+            return cert
+
+        # 1. Exactly 30 days remaining -> SHOULD send reminder
+        self.cert_30d = make_cert("REM-30D", self.today + datetime.timedelta(days=30))
+        # 2. Exactly 7 days remaining -> SHOULD send reminder
+        self.cert_7d = make_cert("REM-7D", self.today + datetime.timedelta(days=7))
+        # 3. 29 days remaining -> Should NOT send
+        self.cert_29d = make_cert("REM-29D", self.today + datetime.timedelta(days=29))
+        # 4. 8 days remaining -> Should NOT send
+        self.cert_8d = make_cert("REM-8D", self.today + datetime.timedelta(days=8))
+        # 5. Expired 5 days ago -> Should NOT send
+        self.cert_expired = make_cert("REM-EXP", self.today - datetime.timedelta(days=5))
+        # 6. Exactly 30 days remaining but REVOKED -> Should NOT send
+        self.cert_revoked_30d = make_cert("REM-REV-30D", self.today + datetime.timedelta(days=30), is_revoked=True)
+
+    def test_reminders_sent_only_for_exact_30_and_7_days(self):
+        out = StringIO()
+        call_command("send_expiry_reminders", stdout=out)
+
+        # Only 2 emails should be sent: cert_30d and cert_7d
+        self.assertEqual(len(mail.outbox), 2)
+
+        subjects = [m.subject for m in mail.outbox]
+        self.assertTrue(any(self.cert_30d.number in s and "30 days" in s for s in subjects))
+        self.assertTrue(any(self.cert_7d.number in s and "7 days" in s for s in subjects))
+
+        for msg in mail.outbox:
+            self.assertEqual(msg.to, ["owner.reminder@example.com"])
+            self.assertIn("Legal Metrology Act, 2009", msg.body)
+            self.assertIn("Reminder Kirana Store", msg.body)
+
+    def test_dry_run_does_not_send_emails(self):
+        out = StringIO()
+        call_command("send_expiry_reminders", "--dry-run", stdout=out)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertIn("[DRY RUN]", out.getvalue())
+        self.assertIn("Simulated 2 certificate expiry reminder(s)", out.getvalue())
