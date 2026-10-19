@@ -48,6 +48,22 @@ a {
   transition: color var(--duration-hover) ease;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  a:not(.btn):not(.nav-chip):not(.brand):not(.status-chip):not(.table-row):not(.index-row) {
+    text-decoration: none;
+    background-image: linear-gradient(var(--accent), var(--accent));
+    background-size: 0% 1px;
+    background-position: left bottom;
+    background-repeat: no-repeat;
+    transition: background-size 300ms cubic-bezier(0.22, 1, 0.36, 1), color 300ms ease;
+  }
+
+  a:not(.btn):not(.nav-chip):not(.brand):not(.status-chip):not(.table-row):not(.index-row):hover {
+    background-size: 100% 1px;
+    color: var(--accent);
+  }
+}
+
 a:hover {
   color: var(--accent);
 }

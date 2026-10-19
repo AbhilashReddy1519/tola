@@ -7,7 +7,8 @@
     <!-- 1. Hero -->
     <section class="landing-hero" aria-labelledby="hero-heading">
         <h1 id="hero-heading" class="display hero-title">
-            Every scale,<br><em>verified.</em>
+            <span class="line-mask"><span class="line-text">Every scale,</span></span>
+            <span class="line-mask"><span class="line-text"><em>verified.</em></span></span>
         </h1>
 
         <div class="label hero-meta">
@@ -120,17 +121,17 @@
 
         <div class="ledger-grid">
             <div class="stat-block">
-                <div class="stat-value">{{ instruments_verified }}</div>
+                <div class="stat-value stat-counter" data-target="{{ instruments_verified }}" data-decimals="0">{{ instruments_verified }}</div>
                 <div class="stat-label">Instruments Verified</div>
             </div>
 
             <div class="stat-block">
-                <div class="stat-value">{{ certificates_active }}</div>
+                <div class="stat-value stat-counter" data-target="{{ certificates_active }}" data-decimals="0">{{ certificates_active }}</div>
                 <div class="stat-label">Active Certificates</div>
             </div>
 
             <div class="stat-block">
-                <div class="stat-value">{{ avg_days_to_certify }}d</div>
+                <div class="stat-value stat-counter" data-target="{{ avg_days_to_certify }}" data-decimals="1" data-suffix="d">{{ avg_days_to_certify }}d</div>
                 <div class="stat-label">Avg. Days to Certify</div>
             </div>
         </div>

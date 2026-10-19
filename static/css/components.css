@@ -464,6 +464,18 @@
   max-width: 14ch;
 }
 
+.line-mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+}
+
+.line-mask .line-text {
+  display: block;
+  transform: translateY(0);
+  opacity: 1;
+}
+
 .hero-meta {
   display: flex;
   align-items: center;
