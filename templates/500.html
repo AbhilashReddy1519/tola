@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 — Server Error — Tola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@1&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+</head>
+<body>
+    <header>
+        <nav class="nav-rail" aria-label="Main Navigation">
+            <a href="/" class="brand">Tola</a>
+            <ul class="nav-links">
+                <li><a href="/verify/">Verify</a></li>
+            </ul>
+            <a href="/" class="nav-chip">Home</a>
+        </nav>
+    </header>
+
+    <main id="main-content" style="padding-top: clamp(80px, 12vw, 140px); padding-bottom: 96px;">
+        <div class="container" style="max-width: 680px;">
+            <div style="border-bottom: var(--border-hairline); padding-bottom: 24px; margin-bottom: 32px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <span class="label" style="color: var(--bad);">ERROR 500</span>
+                    <span class="label" aria-hidden="true">&bull;</span>
+                    <span class="label">SYSTEM EXCEPTION</span>
+                </div>
+                <h1 class="h1" style="font-size: clamp(36px, 6vw, 56px); line-height: 1.05;">
+                    Server <em>interruption.</em>
+                </h1>
+            </div>
+
+            <p class="body" style="color: var(--ink-soft); margin-bottom: 32px; font-size: 16px; line-height: 1.6;">
+                An unexpected technical error occurred while processing this statutory ledger transaction. The operations team has logged the event details for immediate diagnostic review.
+            </p>
+
+            <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                <a href="/" class="btn btn-primary">Return to Homepage &rarr;</a>
+                <a href="/verify/" class="btn btn-secondary">Certificate Lookup</a>
+            </div>
+
+            <div style="margin-top: 64px; padding-top: 24px; border-top: var(--border-hairline);">
+                <p class="label" style="color: var(--ink-muted); margin-bottom: 4px;">OPERATIONAL ASSURANCE</p>
+                <p class="small" style="color: var(--ink-soft);">
+                    Existing certificate records, issued PDF stamps, and tamper-evident QR signatures remain fully verifiable on the decentralized ledger.
+                </p>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
