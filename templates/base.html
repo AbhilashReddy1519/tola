@@ -1,14 +1,58 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Tola — Verification of Weighing and Measuring Instruments{% endblock %}</title>
+
+    <!-- Fonts: Inter Tight, Instrument Serif (italic), Geist Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@1&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Design System CSS -->
+    <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    {% block content %}
-    <h1>Tola</h1>
-    <p>Online verification of weighing and measuring instruments.</p>
-    {% endblock %}
+    <!-- Floating Nav Rail -->
+    <header>
+        <nav class="nav-rail" aria-label="Main Navigation">
+            <a href="{% url 'landing' %}" class="brand">Tola</a>
+            <ul class="nav-links">
+                <li><a href="{% url 'landing' %}#how-it-works">Process</a></li>
+                <li><a href="{% url 'landing' %}#ledger">Ledger</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'app_redirect' %}">Dashboard</a></li>
+                {% endif %}
+            </ul>
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="nav-chip">Log out</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="nav-chip">Log in</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" style="padding-top: clamp(80px, 10vw, 120px); padding-bottom: clamp(96px, 12vw, 140px);">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Django Messages Block Rendered as Toasts -->
+    {% if messages %}
+    <div class="toast-container" role="status" aria-live="polite">
+        {% for message in messages %}
+            <div class="toast toast--{{ message.tags|default:'info' }}">
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

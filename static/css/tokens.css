@@ -1,0 +1,76 @@
+/* ==========================================================================
+   TOLA DESIGN TOKENS
+   Source of truth: docs/03-DESIGN-SYSTEM.md
+   ========================================================================== */
+
+:root {
+  /* Fonts */
+  --font-sans: "Inter Tight", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --font-mono: "Geist Mono", ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+
+  /* Typography Scale */
+  --fs-display: clamp(3.5rem, 11vw, 10rem);
+  --lh-display: 0.92;
+  --ls-display: -0.045em;
+  --fw-display: 300;
+
+  --fs-h1: clamp(2.5rem, 6vw, 5rem);
+  --lh-h1: 1.0;
+  --ls-h1: -0.035em;
+  --fw-h1: 300;
+
+  --fs-h2: clamp(1.75rem, 3.2vw, 2.75rem);
+  --lh-h2: 1.1;
+  --ls-h2: -0.025em;
+  --fw-h2: 300;
+
+  --fs-h3: 1.25rem;
+  --lh-h3: 1.3;
+  --ls-h3: -0.01em;
+  --fw-h3: 500;
+
+  --fs-body: 1.0625rem; /* 17px */
+  --lh-body: 1.55;
+  --ls-body: -0.005em;
+  --fw-body: 400;
+
+  --fs-small: 0.875rem; /* 14px */
+  --lh-small: 1.5;
+  --ls-small: 0;
+  --fw-small: 400;
+
+  --fs-label: 0.6875rem; /* 11px */
+  --lh-label: 1.2;
+  --ls-label: 0.08em;
+  --fw-label: 500;
+
+  /* Colours */
+  --canvas:   #EDECE8;  /* warm pale gray, page background */
+  --surface:  #F6F5F2;  /* raised panels */
+  --ink:      #222222;  /* text, filled buttons, nav rail */
+  --ink-soft: #5E5E5A;  /* secondary text, 5.6:1 on canvas */
+  --rule:     #CFCDC6;  /* hairlines */
+  --accent:   #FF5A1F;  /* single accent: links on hover, focus ring, key marks */
+
+  /* Semantic Status Colours */
+  --ok:       #2F6B4F;  /* Valid */
+  --warn:     #A86A00;  /* Expiring soon */
+  --bad:      #B3261E;  /* Failed, Expired, Revoked */
+
+  /* Layout & Spacing */
+  --base-unit: 8px;
+  --max-width: 1440px;
+  --page-margin: clamp(16px, 4vw, 48px);
+  --section-gap: clamp(96px, 14vw, 200px);
+
+  /* Borders & Radii */
+  --border-hairline: 1px solid var(--rule);
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-entrance: 600ms;
+  --duration-hover: 300ms;
+}

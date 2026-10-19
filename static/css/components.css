@@ -1,0 +1,452 @@
+/* ==========================================================================
+   TOLA COMPONENTS
+   Source: docs/03-DESIGN-SYSTEM.md section 3.6
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Nav Rail
+   Fixed floating pill at bottom centre on mobile, top centre on desktop.
+   -------------------------------------------------------------------------- */
+.nav-rail {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background-color: var(--ink);
+  color: var(--canvas);
+  padding: 8px 12px 8px 24px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: none; /* strictly no shadows per design rules */
+  transition: transform var(--duration-hover) var(--ease-standard), opacity var(--duration-hover) ease;
+}
+
+@media (min-width: 768px) {
+  .nav-rail {
+    bottom: auto;
+    top: 24px;
+  }
+}
+
+.nav-rail.nav-rail--hidden {
+  transform: translate(-50%, 120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .nav-rail.nav-rail--hidden {
+    transform: translate(-50%, -120%);
+  }
+}
+
+.nav-rail .brand {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--canvas);
+  text-decoration: none;
+}
+
+.nav-rail .nav-links {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  gap: 18px;
+}
+
+.nav-rail .nav-links a {
+  color: var(--canvas);
+  text-decoration: none;
+  opacity: 0.82;
+  transition: opacity var(--duration-hover) ease, color var(--duration-hover) ease;
+}
+
+.nav-rail .nav-links a:hover {
+  opacity: 1;
+  color: var(--canvas);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+
+.nav-rail .nav-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 18px;
+  background-color: var(--canvas);
+  color: var(--ink);
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color var(--duration-hover) ease, color var(--duration-hover) ease;
+}
+
+.nav-rail .nav-chip:hover {
+  background-color: var(--accent);
+  color: var(--canvas);
+}
+
+/* --------------------------------------------------------------------------
+   2. Buttons (Primary & Secondary)
+   48px tall, pill-shaped.
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 28px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  white-space: nowrap;
+  transition: background-color 400ms var(--ease-standard),
+              color 400ms var(--ease-standard),
+              border-color 400ms var(--ease-standard);
+}
+
+.btn-primary {
+  background-color: var(--ink);
+  color: var(--canvas);
+  border: 1px solid var(--ink);
+}
+
+.btn-primary:hover {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: var(--canvas);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+}
+
+.btn-secondary:hover {
+  background-color: var(--ink);
+  color: var(--canvas);
+}
+
+/* --------------------------------------------------------------------------
+   3. Inputs
+   Bottom border only, 56px tall, floating mono labels, accent underline.
+   -------------------------------------------------------------------------- */
+.field {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  margin-bottom: 28px;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  height: 56px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  border-radius: 0;
+  padding: 12px 0 6px 0;
+  outline: none;
+  transition: border-color var(--duration-hover) ease;
+}
+
+.field textarea {
+  height: auto;
+  min-height: 96px;
+  resize: vertical;
+}
+
+.field label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  line-height: var(--lh-label);
+  font-weight: var(--fw-label);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  transition: color var(--duration-hover) ease;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-bottom: 2px solid var(--accent);
+}
+
+.field input:focus + label,
+.field select:focus + label,
+.field textarea:focus + label {
+  color: var(--accent);
+}
+
+.field .help-text,
+.field .error-text {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  margin-top: 6px;
+}
+
+.field .error-text {
+  color: var(--bad);
+}
+
+/* --------------------------------------------------------------------------
+   4. Table Rows
+   72px tall, hairline separators, 8px hover shift + arrow reveal.
+   -------------------------------------------------------------------------- */
+.table-hairline {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 72px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform var(--duration-hover) var(--ease-standard),
+              background-color var(--duration-hover) ease;
+  cursor: pointer;
+}
+
+.table-row:hover {
+  transform: translateX(8px);
+  background-color: rgba(246, 245, 242, 0.6);
+  color: var(--ink);
+}
+
+.table-row .row-main {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.table-row .row-end {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.table-row .row-arrow {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity var(--duration-hover) ease, transform var(--duration-hover) ease;
+}
+
+.table-row:hover .row-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* --------------------------------------------------------------------------
+   5. Status Chip
+   Mono label, 8px semantic dot, word beside it.
+   -------------------------------------------------------------------------- */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background-color: var(--surface);
+  border: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+.status-chip .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: currentColor;
+  flex-shrink: 0;
+}
+
+.status-chip.status-ok {
+  color: var(--ok);
+}
+
+.status-chip.status-warn {
+  color: var(--warn);
+}
+
+.status-chip.status-bad {
+  color: var(--bad);
+}
+
+.status-chip.status-pending {
+  color: var(--ink-soft);
+}
+
+/* --------------------------------------------------------------------------
+   6. Stat Block
+   Giant number in weight 300, mono label beneath.
+   -------------------------------------------------------------------------- */
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-block .stat-value {
+  font-family: var(--font-sans);
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 300;
+  line-height: 1.0;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+}
+
+.stat-block .stat-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* --------------------------------------------------------------------------
+   7. Timeline
+   Vertical hairline with dots, small event text, mono timestamp.
+   -------------------------------------------------------------------------- */
+.timeline {
+  position: relative;
+  list-style: none;
+  padding-left: 24px;
+  border-left: 1px solid var(--rule);
+  margin: 32px 0;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 28px;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -29px;
+  top: 4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: var(--ink);
+  border: 2px solid var(--canvas);
+}
+
+.timeline-item .timeline-time {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+
+.timeline-item .timeline-event {
+  font-size: var(--fs-small);
+  color: var(--ink);
+}
+
+/* --------------------------------------------------------------------------
+   8. Empty State
+   One sentence in h2 style and one pill button. No illustration.
+   -------------------------------------------------------------------------- */
+.empty-state {
+  padding: clamp(64px, 8vw, 120px) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  border-top: 1px solid var(--rule);
+}
+
+.empty-state p {
+  font-family: var(--font-sans);
+  font-size: var(--fs-h2);
+  line-height: var(--lh-h2);
+  letter-spacing: var(--ls-h2);
+  font-weight: var(--fw-h2);
+  color: var(--ink);
+  max-width: 32ch;
+}
+
+/* --------------------------------------------------------------------------
+   9. Toast Notifications
+   Slides in from bottom, ink background, auto-dismiss.
+   -------------------------------------------------------------------------- */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background-color: var(--ink);
+  color: var(--canvas);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  animation: toast-in 400ms var(--ease-standard) forwards,
+             toast-out 400ms ease forwards 3.6s;
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
