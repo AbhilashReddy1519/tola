@@ -3,13 +3,86 @@
 {% block title %}Register Business Owner — Tola{% endblock %}
 
 {% block content %}
-<div class="auth-card">
-    <h2>Register as Business Owner</h2>
-    <form method="post" action="{% url 'register' %}">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Register</button>
-    </form>
-    <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+<div class="container" style="max-width: 560px;">
+
+    <!-- Header -->
+    <header style="margin-bottom: 36px;">
+        <div class="label" style="margin-bottom: 8px;">
+            BUSINESS REGISTRATION &bull; LEGAL METROLOGY ACT, 2009
+        </div>
+        <h1 class="h1">Create <em>account</em></h1>
+        <p class="body" style="color: var(--ink-soft); margin-top: 8px;">
+            Register as a business owner to manage weighing and measuring instruments, submit verification requests, and download official compliance certificates.
+        </p>
+    </header>
+
+    <!-- Registration Card -->
+    <div style="background-color: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: clamp(28px, 5vw, 44px); margin-bottom: 32px;">
+        <form method="post" action="{% url 'register' %}">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div style="padding: 14px 18px; background-color: var(--canvas); border-left: 3px solid var(--bad); border-radius: 4px; margin-bottom: 24px;">
+                    {% for error in form.non_field_errors %}
+                        <p class="small" style="color: var(--bad); margin: 0;">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="field">
+                {{ form.username }}
+                <label for="{{ form.username.id_for_label }}">Username</label>
+                {% if form.username.errors %}
+                    <span class="error-text">{{ form.username.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                {{ form.email }}
+                <label for="{{ form.email.id_for_label }}">Email Address</label>
+                {% if form.email.errors %}
+                    <span class="error-text">{{ form.email.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                {{ form.phone }}
+                <label for="{{ form.phone.id_for_label }}">Phone Number</label>
+                {% if form.phone.errors %}
+                    <span class="error-text">{{ form.phone.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                {{ form.password1 }}
+                <label for="{{ form.password1.id_for_label }}">Password</label>
+                {% if form.password1.errors %}
+                    <span class="error-text">{{ form.password1.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                {{ form.password2 }}
+                <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                {% if form.password2.errors %}
+                    <span class="error-text">{{ form.password2.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div style="margin-top: 32px;">
+                <button type="submit" class="btn btn-primary" style="width: 100%; height: 50px;">
+                    Create Owner Account &rarr;
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Switch to Login -->
+    <div style="text-align: center; margin-bottom: 32px;">
+        <p class="small" style="color: var(--ink-soft);">
+            Already have an account? <a href="{% url 'login' %}" style="font-weight: 500;">Log in &rarr;</a>
+        </p>
+    </div>
+
 </div>
 {% endblock %}

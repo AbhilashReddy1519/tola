@@ -147,6 +147,22 @@ class OwnerRegistrationTests(TestCase):
         self.assertFalse(user.is_staff)
         self.assertFalse(user.is_superuser)
 
+    def test_register_page_renders_styled_components(self):
+        response = self.client.get(reverse("register"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Create <em>account</em>")
+        self.assertContains(response, "class=\"field\"")
+        self.assertContains(response, "class=\"btn btn-primary\"")
+
+    def test_login_page_renders_styled_components(self):
+        response = self.client.get(reverse("login"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Sign <em>in</em>")
+        self.assertContains(response, "class=\"field\"")
+        self.assertContains(response, "class=\"btn btn-primary\"")
+        self.assertContains(response, "DEMO CREDENTIALS")
+        self.assertContains(response, "owner_ramesh")
+
 
 class ManagementCommandTests(TestCase):
     def test_create_demo_users_command(self):
