@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Owner dashboard — Tola{% endblock %}
+
+{% block content %}
+<div class="dashboard-stub">
+    <h2>Owner dashboard</h2>
+    <p>Welcome, {{ request.user.username }}.</p>
+    <p><a href="{% url 'logout' %}">Log out</a></p>
+</div>
+{% endblock %}

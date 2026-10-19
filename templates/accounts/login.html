@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Log in — Tola{% endblock %}
+
+{% block content %}
+<div class="auth-card">
+    <h2>Log in</h2>
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Log in</button>
+    </form>
+    <p>Don't have an account? <a href="{% url 'register' %}">Register as Business Owner</a></p>
+</div>
+{% endblock %}

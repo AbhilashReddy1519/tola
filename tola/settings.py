@@ -137,3 +137,7 @@ SITE_URL = config("SITE_URL", default="http://localhost:8000")
 VERIFICATION_FEE = config("VERIFICATION_FEE", default=500, cast=int)
 CERT_VALIDITY_MONTHS = config("CERT_VALIDITY_MONTHS", default=12, cast=int)
 EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "app_redirect"
+LOGOUT_REDIRECT_URL = "landing"
