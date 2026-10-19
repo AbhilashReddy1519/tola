@@ -259,6 +259,10 @@ class InspectorInspectionView(RoleRequiredMixin, View):
             note = f"Inspection completed with result {result}. Remarks: {remarks}" if remarks else f"Inspection completed with result {result}."
             transition(req, target_status, actor=request.user, note=note)
 
+            if passed:
+                from certificates.services import issue_certificate
+                issue_certificate(inspection, actor=request.user)
+
         messages.success(request, f"Inspection for Request #{req.pk} submitted: {result}.")
         return redirect("inspector_queue")
 

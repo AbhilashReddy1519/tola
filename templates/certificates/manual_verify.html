@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Certificate Number — Tola{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 760px;">
+
+    <div style="border-bottom: var(--border-hairline); padding-bottom: 32px; margin-bottom: 40px;">
+        <span class="label">Public Trust Registry</span>
+        <h1 class="h1" style="margin-top: 8px;">Verify <em>certificate</em></h1>
+        <p class="body" style="color: var(--ink-soft); margin-top: 8px;">
+            Enter the certificate number stamped on an instrument or printed on an official certificate to verify its validity and inspection records.
+        </p>
+    </div>
+
+    <!-- Search Form -->
+    <form method="get" action="{% url 'public_manual_verify' %}" style="display: flex; gap: 16px; align-items: flex-end; margin-bottom: 48px; flex-wrap: wrap;">
+        <div class="field" style="flex: 1; min-width: 280px; margin-bottom: 0;">
+            <input type="text" name="number" id="cert-number-input" value="{{ query }}" placeholder="e.g. TOLA-2026-000001" required style="text-transform: uppercase;">
+            <label for="cert-number-input">Certificate Number</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="height: 56px;">
+            Lookup Certificate &rarr;
+        </button>
+    </form>
+
+    {% if searched %}
+        {% if cert %}
+            <!-- Result Found Card -->
+            <div style="padding: 32px; background-color: var(--surface); border: var(--border-hairline); border-radius: var(--radius-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <span class="label mono">FOUND RECORD</span>
+                        <h2 class="h2" style="margin-top: 4px;">{{ cert.number }}</h2>
+                        <div class="small" style="color: var(--ink-soft); margin-top: 4px;">
+                            {{ cert.inspection.request.instrument.business.name }} &bull; {{ cert.inspection.request.instrument.make }} {{ cert.inspection.request.instrument.model_no }}
+                        </div>
+                    </div>
+
+                    <div>
+                        {% if cert.state == 'VALID' %}
+                            <span class="status-chip status-ok"><span class="dot"></span>Valid</span>
+                        {% elif cert.state == 'REVOKED' %}
+                            <span class="status-chip status-bad"><span class="dot"></span>Revoked</span>
+                        {% else %}
+                            <span class="status-chip status-bad"><span class="dot"></span>Expired</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 16px; align-items: center; margin-top: 24px; padding-top: 20px; border-top: var(--border-hairline);">
+                    <a href="{% url 'public_token_verify' cert.token %}" class="btn btn-primary">
+                        View Full Public Record &rarr;
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <!-- Not Found State -->
+            <div class="empty-state" style="padding-top: 24px;">
+                <p>No verified certificate found for "{{ query }}".</p>
+                <div class="small" style="color: var(--ink-soft); max-width: 50ch;">
+                    Please verify that the number is entered exactly as shown on the stamping seal or paper certificate (format: TOLA-YYYY-XXXXXX).
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+
+</div>
+{% endblock %}

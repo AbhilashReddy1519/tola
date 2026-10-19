@@ -107,27 +107,45 @@ class Instrument(models.Model):
 
     @property
     def current_certificate(self):
-        # TODO (Stage 5): Query latest valid certificate for this instrument from certificates app
-        try:
-            from certificates.models import Certificate  # noqa: F401
-            return getattr(self, "_current_certificate", None)
-        except (ImportError, Exception):
-            return None
+        """Returns the latest certificate issued for this instrument."""
+        from certificates.models import Certificate
+        return (
+            Certificate.objects.filter(inspection__request__instrument=self)
+            .order_by("-issued_on", "-created_at")
+            .first()
+        )
 
     @property
     def status(self):
-        # TODO (Stage 5): Compute based on Certificate.state and VerificationRequest.status
+        """Derived status: Unverified, Pending, Valid, Expiring soon, Expired, Failed, Revoked."""
+        latest_req = self.verification_requests.order_by("-created_at").first()
+        if latest_req and latest_req.status in ["SUBMITTED", "ASSIGNED"]:
+            return "Pending"
+
         cert = self.current_certificate
         if cert is None:
+            if latest_req and latest_req.status == "FAILED":
+                return "Failed"
             return "Unverified"
-        return getattr(cert, "state", "Unverified")
+
+        if cert.revoked_at is not None:
+            return "Revoked"
+
+        from django.utils import timezone
+        today = timezone.now().date()
+        if cert.valid_until < today:
+            return "Expired"
+
+        days_left = (cert.valid_until - today).days
+        if days_left <= 30:
+            return "Expiring soon"
+
+        return "Valid"
 
     @property
     def days_to_expiry(self):
-        # TODO (Stage 5): Compute (valid_until - today).days from current_certificate
         cert = self.current_certificate
-        if cert and hasattr(cert, "valid_until") and cert.valid_until:
+        if cert and cert.valid_until:
             from django.utils import timezone
-            delta = cert.valid_until - timezone.now().date()
-            return delta.days
+            return (cert.valid_until - timezone.now().date()).days
         return None

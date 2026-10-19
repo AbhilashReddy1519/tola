@@ -242,10 +242,11 @@ class VerificationWorkflowPermissionsTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.req_a.refresh_from_db()
-        self.assertEqual(self.req_a.status, RequestStatus.PASSED)
+        self.assertEqual(self.req_a.status, RequestStatus.CERTIFIED)
         self.assertTrue(hasattr(self.req_a, "inspection"))
         self.assertEqual(self.req_a.inspection.result, InspectionResult.PASS)
         self.assertEqual(self.req_a.inspection.readings.count(), 2)
+        self.assertTrue(hasattr(self.req_a.inspection, "certificate"))
 
     def test_inspection_submission_fail(self):
         # Assign to inspector 1

@@ -7,5 +7,6 @@ urlpatterns = [
     path("app/", include("verification.urls")),
     path("app/", include("registry.urls")),
     path("app/", include("accounts.app_urls")),
+    path("", include("certificates.urls")),
     path("", include("site_pages.urls")),
 ]

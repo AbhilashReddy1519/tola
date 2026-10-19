@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Revoke Certificate: {{ cert.number }} — Tola{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 720px;">
+
+    <div style="margin-bottom: 32px;">
+        <span class="label" style="color: var(--bad);">Administrative Enforcement</span>
+        <h1 class="h1" style="margin-top: 8px;">Revoke <em>certificate</em></h1>
+        <p class="body" style="color: var(--ink-soft); margin-top: 8px;">
+            You are revoking Certificate #<strong>{{ cert.number }}</strong> for <strong>{{ cert.inspection.request.instrument.business.name }}</strong> (Serial: <span class="mono">{{ cert.inspection.request.instrument.serial_no }}</span>).
+        </p>
+    </div>
+
+    <div style="padding: 16px 20px; background-color: var(--surface); border-left: 3px solid var(--bad); border-radius: var(--radius-sm); margin-bottom: 32px;">
+        <p class="small" style="color: var(--bad); margin: 0; font-weight: 500;">
+            WARNING: Revoking a certificate immediately renders the instrument unverified on the public ledger. This action is recorded in the permanent audit trail.
+        </p>
+    </div>
+
+    <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
+        {% csrf_token %}
+
+        <div class="field">
+            <textarea name="reason" id="revoke-reason" rows="4" placeholder="Enter legal grounds or inspection failure grounds for revocation (e.g., broken lead seal, post-calibration tampering, fraudulent serial number)..." required></textarea>
+            <label for="revoke-reason">Legal Grounds / Reason for Revocation</label>
+        </div>
+
+        <div style="display: flex; gap: 16px; margin-top: 24px;">
+            <button type="submit" class="btn btn-primary" style="background-color: var(--bad); border-color: var(--bad);">
+                Confirm Revocation
+            </button>
+            <a href="{% url 'public_token_verify' cert.token %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+
+</div>
+{% endblock %}
